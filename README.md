@@ -14,6 +14,12 @@ uv tool install learn-tutor        # install from PyPI
 uv tool install git+https://github.com/itzsid/learn.git
 ```
 
+To upgrade to the latest version:
+
+```bash
+uv tool upgrade learn-tutor
+```
+
 Then:
 
 ```bash
@@ -62,10 +68,11 @@ Each module has a lesson written in a tutor's voice — concepts, worked example
 
 Four evidence-based practice formats, each targeting a different aspect of deep learning:
 
-- **SRS Review** — Spaced repetition cards (concept, compute, and visual types) with self-grading and error classification
+- **SRS Review** — Spaced repetition cards (concept, compute, visual, and coding types) with self-grading and error classification
 - **Free Recall** — Pick a module, write everything you know from memory, compare against reference
 - **Teach Back** — Explain a concept as if teaching someone, then compare
 - **Mixed Practice** — Interleaved problems across modules
+- **Coding Practice** (technical topics) — Write code to solve scoped problems with AI feedback and reference solutions
 
 ![Practice Modes](screenshots/practice-modes.png)
 
