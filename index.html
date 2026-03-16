@@ -453,6 +453,75 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Dashboard generation banner */
+.dash-gen-banner {
+  background: var(--surface2);
+  border-left: 3px solid var(--amber);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  animation: fadeUp 0.4s ease-out;
+}
+.dash-gen-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(232,168,76,0.05) 50%, transparent 100%);
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+.dash-gen-banner.done {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.dash-gen-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+.dash-gen-banner-icon .pending-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--amber);
+  animation: activePulse 1.5s ease-in-out infinite;
+}
+.dash-gen-banner-text {
+  flex: 1;
+  min-width: 0;
+}
+.dash-gen-banner-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.dash-gen-banner-bar-wrap {
+  height: 4px;
+  background: var(--surface);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.dash-gen-banner-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--amber), #f0c060);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+.dash-gen-banner-pct {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+  min-width: 32px;
+  text-align: right;
+}
+
 /* ========== APP SHELL ========== */
 #app-shell {
   display: none;
@@ -1245,6 +1314,20 @@ code {
         <div class="page-title">Dashboard</div>
         <div class="page-sub" id="dash-date"></div>
       </div>
+      <div class="dash-gen-banner" id="dash-gen-banner" style="display:none;">
+        <div class="dash-gen-banner-content">
+          <div class="dash-gen-banner-icon">
+            <div class="pending-dot"></div>
+          </div>
+          <div class="dash-gen-banner-text">
+            <div class="dash-gen-banner-label" id="dash-gen-label">Generating lessons...</div>
+            <div class="dash-gen-banner-bar-wrap">
+              <div class="dash-gen-banner-bar" id="dash-gen-bar"></div>
+            </div>
+          </div>
+          <span class="dash-gen-banner-pct" id="dash-gen-pct">0%</span>
+        </div>
+      </div>
       <div class="stat-grid" id="dash-stats"></div>
       <div class="two-col">
         <div class="panel" id="dash-modules">
@@ -1886,6 +1969,64 @@ function renderDashboard() {
 
   // Dynamic branding from topic
   updateBranding();
+
+  // Check if generation is still in progress
+  checkDashboardGeneration();
+}
+
+let _dashGenPollTimer = null;
+
+async function checkDashboardGeneration() {
+  try {
+    const res = await fetch('/api/generation-progress');
+    const progress = await res.json();
+    const banner = document.getElementById('dash-gen-banner');
+    if (!banner) return;
+
+    if (!progress.started || !progress.steps || progress.steps.length === 0) {
+      hideDashGenBanner();
+      return;
+    }
+
+    const done = progress.steps.filter(s => s.done).length;
+    const total = progress.steps.length;
+    const allDone = done === total;
+
+    if (allDone) {
+      // All done — hide banner, refresh to pick up new lessons
+      hideDashGenBanner();
+      await fetchLessons();
+      renderStudyList();
+      return;
+    }
+
+    // Show banner with current progress
+    const pct = Math.round((done / total) * 100);
+    const activeStep = progress.steps.find(s => !s.done);
+    const label = activeStep ? activeStep.label + '...' : 'Generating...';
+
+    banner.style.display = '';
+    banner.classList.remove('done');
+    document.getElementById('dash-gen-label').textContent = label;
+    document.getElementById('dash-gen-bar').style.width = pct + '%';
+    document.getElementById('dash-gen-pct').textContent = pct + '%';
+
+    // Schedule next poll
+    clearTimeout(_dashGenPollTimer);
+    _dashGenPollTimer = setTimeout(checkDashboardGeneration, 2000);
+  } catch (e) {
+    // If endpoint fails, just hide
+    hideDashGenBanner();
+  }
+}
+
+function hideDashGenBanner() {
+  clearTimeout(_dashGenPollTimer);
+  const banner = document.getElementById('dash-gen-banner');
+  if (banner && banner.style.display !== 'none') {
+    banner.classList.add('done');
+    setTimeout(() => { banner.style.display = 'none'; }, 400);
+  }
 }
 
 function getTopicName() {
