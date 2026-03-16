@@ -1,4 +1,4 @@
-# SRS — AI-Powered Spaced Repetition
+# Learn — AI-Powered Personal Tutor
 
 An AI tutor that builds personalized spaced repetition curricula from any topic. Tell it what you want to learn, answer a few calibration questions, and get a full course with lessons, flashcards, and multiple practice modes — all running locally in your browser.
 
@@ -115,3 +115,7 @@ Built on established cognitive science (documented in `LEARNING_THEORY.md`):
 - **Self-explanation effect** — Teach Back mode forces articulation (Chi et al.)
 - **Error classification** — every mistake gets typed and tracked, building verification reflexes
 - **Generation effect** — all exercises require producing, never just recognizing
+
+## Acknowledgements
+
+Inspired by [SRS by Voxos](https://srs.voxos.ai/) and [Project Second Brain](https://layerbylayer.ai/posts/2026_02_11_project_second_brain/) by Layer by Layer.
