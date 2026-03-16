@@ -4,6 +4,7 @@ Usage: python3 server.py [port] [--claude-path /path/to/claude]
 Default port: 3000
 """
 
+import concurrent.futures
 import json
 import os
 import re
@@ -100,10 +101,11 @@ def _run_claude(prompt, allowed_tools="Read,Write,Edit,Bash"):
     if _cancel_generation.is_set():
         return None
 
+    tools_flag = f'--allowedTools {allowed_tools} ' if allowed_tools else ''
     cmd = (
         f'source ~/.zshrc 2>/dev/null; '
         f'{shlex.quote(CLAUDE_CMD)} -p '
-        f'--allowedTools {allowed_tools} '
+        f'{tools_flag}'
         f'--permission-mode bypassPermissions '
         f'--no-session-persistence '
         f'{shlex.quote(prompt)}'
@@ -219,7 +221,7 @@ You MUST now generate the curriculum. Follow the CLAUDE.md instructions precisel
 Do the following steps:
 1. Read CLAUDE.md to understand the exact formats required.
 2. Create the lessons/ directory if it doesn't exist (use Bash: mkdir -p lessons).
-3. Write CURRICULUM.md with 10-12 modules organized into tiers (Foundations, Core, Fluency, Mastery). Each module needs 6-8 cards across Concept, Compute, and Visual types. Include the Module Map Table at the top.
+3. Write CURRICULUM.md with 10-12 modules organized into tiers (Foundations, Core, Fluency, Mastery). Each module needs 6-8 cards across Concept, Compute, Visual, and Coding types (Coding cards for technical topics only). Include the Module Map Table at the top. For every Coding card, include a Solution: field with a complete reference solution.
 
 Use the calibration answers to determine starting level.
 
@@ -500,6 +502,16 @@ def parse_curriculum(text):
             v_match = re.search(r"Validation:\s*(.+?)(?:\n|$)", card["body"])
             if v_match:
                 card["validation"] = v_match.group(1).strip()
+            # Parse coding card fields
+            sol_match = re.search(r"Solution:\s*(.+?)(?:\n- |\Z)", card["body"], re.DOTALL)
+            if sol_match:
+                card["solution"] = sol_match.group(1).strip()
+            lang_match = re.search(r"Language:\s*(.+?)(?:\n|$)", card["body"])
+            if lang_match:
+                card["language"] = lang_match.group(1).strip()
+            con_match = re.search(r"Constraints:\s*(.+?)(?:\n|$)", card["body"])
+            if con_match:
+                card["constraints"] = con_match.group(1).strip()
             mod["card_details"].append(card)
 
         # Parse assessment probes
@@ -673,6 +685,62 @@ class Handler(SimpleHTTPRequestHandler):
                 if p.exists():
                     p.unlink()
             self._json_response({"ok": True})
+        elif path == "/api/coding/feedback":
+            data = json.loads(body)
+            user_code = data.get("code", "")
+            question = data.get("question", "")
+            validation = data.get("validation", "")
+            solution = data.get("solution", "")
+            language = data.get("language", "")
+            constraints = data.get("constraints", "")
+
+            if user_code == "__GENERATE_SOLUTION__":
+                prompt = f"""You are a coding tutor. Write a clean, correct reference solution for this problem.
+
+- Question: {question}
+- Language: {language}
+- Constraints: {constraints}
+- Validation criteria: {validation}
+
+Provide ONLY the code solution with brief inline comments explaining key decisions. Use markdown code blocks. After the code, add 2-3 sentences explaining the approach and its time/space complexity."""
+            else:
+                prompt = f"""You are a strict but constructive code reviewer for a learning system.
+
+The student was given this coding problem:
+- Question: {question}
+- Language: {language}
+- Constraints: {constraints}
+- Validation criteria: {validation}
+- Reference solution: {solution}
+
+The student wrote:
+```
+{user_code}
+```
+
+Give focused feedback in this exact format (use markdown):
+1. **Correctness** — Does it produce the right output? If not, give a specific failing input.
+2. **Edge cases** — What inputs would break it? List any unhandled cases.
+3. **Complexity** — Does it meet the constraints? If not, what's the actual complexity and how to fix it?
+4. **Style** — Any clarity issues? Keep this brief — only flag genuine obscurity.
+5. **Verdict** — One line: Correct / Partially correct / Incorrect, with the key reason.
+
+If the code is correct and clean, say so briefly — don't invent issues. Be specific, not generic. Do NOT rewrite their code or provide the full solution — give hints that help them fix it themselves."""
+
+            # Run claude in a thread to not block
+            def get_feedback():
+                result = _run_claude(prompt, allowed_tools="")
+                if result and hasattr(result, 'stdout'):
+                    return result.stdout.strip()
+                return None
+
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(get_feedback)
+                try:
+                    result = future.result(timeout=120)
+                    self._json_response({"ok": True, "feedback": result or "No feedback generated."})
+                except concurrent.futures.TimeoutError:
+                    self._json_response({"ok": False, "feedback": "Feedback timed out."})
         elif path == "/api/reset":
             # Cancel any ongoing generation and kill subprocesses
             _cancel_generation.set()

@@ -877,6 +877,7 @@ tr:hover td { background: rgba(255,255,255,0.015); }
 .card-type-concept { background: var(--blue-dim); color: var(--blue); }
 .card-type-compute { background: var(--yellow-dim); color: var(--yellow); }
 .card-type-visual { background: var(--purple-dim); color: var(--purple); }
+.card-type-coding { background: var(--green-dim); color: var(--green); }
 
 .question-text {
   font-family: var(--font-display);
@@ -1276,6 +1277,7 @@ code {
     <div class="nav-item" data-page="learn"><span class="icon">&#9654;</span> Start Session</div>
     <div class="nav-item" data-page="recall"><span class="icon">&#9634;</span> Free Recall</div>
     <div class="nav-item" data-page="teach"><span class="icon">&#9672;</span> Teach Back</div>
+    <div class="nav-item" data-page="coding"><span class="icon">&#9998;</span> Coding Practice</div>
     <div class="nav-section">Browse</div>
     <div class="nav-item" data-page="curriculum"><span class="icon">&#9638;</span> Curriculum</div>
     <div class="nav-item" data-page="graph"><span class="icon">&#9678;</span> Knowledge Graph</div>
@@ -1358,7 +1360,7 @@ code {
           <div class="mode-card" onclick="startReviewSession()">
             <div class="mode-icon">&#9654;</div>
             <div class="mode-name">SRS Review</div>
-            <div class="mode-desc">Spaced repetition cards due today. Concept, compute, and visual cards with self-assessment.</div>
+            <div class="mode-desc">Spaced repetition cards due today. Concept, compute, visual, and coding cards with self-assessment.</div>
             <div class="mode-tag" style="background:var(--green-dim);color:var(--green);" id="due-tag">0 cards due</div>
           </div>
           <div class="mode-card" onclick="nav('recall')">
@@ -1378,6 +1380,12 @@ code {
             <div class="mode-name">Mixed Practice</div>
             <div class="mode-desc">Interleaved problems from multiple modules. Improves discrimination between methods.</div>
             <div class="mode-tag" style="background:var(--purple-dim);color:var(--purple);">Interleaving</div>
+          </div>
+          <div class="mode-card" onclick="startCodingPractice()">
+            <div class="mode-icon">&#9998;</div>
+            <div class="mode-name">Coding Practice</div>
+            <div class="mode-desc">Write working code to solve scoped problems. Graded on correctness, edge cases, and complexity.</div>
+            <div class="mode-tag" style="background:var(--green-dim);color:var(--green);">Applied coding</div>
           </div>
         </div>
       </div>
@@ -1501,6 +1509,73 @@ code {
           <div class="grade-btn grade-missed" onclick="gradeTeach('incorrect')">
             <span class="grade-label">Incomplete</span>
             <span class="grade-desc">Major gaps or errors</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CODING PRACTICE -->
+    <div class="page" id="page-coding">
+      <div class="page-header">
+        <div class="page-title">Coding Practice</div>
+        <div class="page-sub">Write working code to solve problems. Tests your ability to translate concepts into running code.</div>
+      </div>
+      <div id="coding-setup">
+        <div class="panel">
+          <div class="panel-title">Pick a coding challenge</div>
+          <div id="coding-card-list"></div>
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="startCoding()">Start Coding</button>
+          </div>
+        </div>
+      </div>
+      <div id="coding-active" style="display:none;" class="session-area fade-in">
+        <div class="teach-prompt">
+          <div class="concept-name" id="coding-card-title"></div>
+          <div id="coding-card-meta" style="font-size:12px;color:var(--text-faint);margin-bottom:8px;"></div>
+          <div class="teach-instruction" id="coding-card-question"></div>
+        </div>
+        <div class="answer-area">
+          <textarea id="coding-text" placeholder="Write your code here..." style="font-family:'SF Mono',Menlo,Monaco,Consolas,monospace;font-size:13px;tab-size:4;white-space:pre;"></textarea>
+        </div>
+        <div id="coding-feedback-area" style="display:none;margin-top:16px;">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:8px;font-weight:600;">AI Feedback</div>
+          <div class="panel" id="coding-feedback-content" style="font-size:14px;line-height:1.7;"></div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-ghost" id="coding-feedback-btn" onclick="getCodingFeedback()">Get AI Feedback</button>
+          <button class="btn btn-primary" onclick="finishCoding()">Submit &mdash; Show Solution</button>
+        </div>
+      </div>
+      <div id="coding-review" style="display:none;" class="session-area fade-in">
+        <h3 style="font-family:var(--font-display);font-size:20px;font-weight:400;margin-bottom:16px;">Review Your Solution</h3>
+        <div class="two-col">
+          <div>
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:8px;font-weight:600;">Your code</div>
+            <div class="panel" id="coding-yours" style="white-space:pre;overflow-x:auto;font-family:'SF Mono',Menlo,Monaco,Consolas,monospace;font-size:13px;line-height:1.6;"></div>
+          </div>
+          <div>
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:8px;font-weight:600;">Reference Solution</div>
+            <div class="panel" id="coding-solution" style="font-size:14px;line-height:1.7;"></div>
+          </div>
+        </div>
+        <div id="coding-validation-area" style="margin-top:16px;">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:8px;font-weight:600;">Validation Criteria</div>
+          <div class="panel" id="coding-reference" style="font-size:14px;line-height:1.7;"></div>
+        </div>
+        <div class="self-explain">Check: Does your code handle edge cases? Does it meet the complexity constraints? What would break it?</div>
+        <div class="grade-buttons">
+          <div class="grade-btn grade-got-it" onclick="gradeCoding('correct')">
+            <span class="grade-label">Correct</span>
+            <span class="grade-desc">Handles all cases, meets constraints</span>
+          </div>
+          <div class="grade-btn grade-partial" onclick="gradeCoding('partial')">
+            <span class="grade-label">Partial</span>
+            <span class="grade-desc">Works but missing edge cases or wrong complexity</span>
+          </div>
+          <div class="grade-btn grade-missed" onclick="gradeCoding('incorrect')">
+            <span class="grade-label">Incorrect</span>
+            <span class="grade-desc">Wrong output or fundamentally flawed</span>
           </div>
         </div>
       </div>
@@ -1869,6 +1944,12 @@ function nav(page) {
     document.getElementById('learn-session').style.display = 'none';
     document.getElementById('learn-summary').style.display = 'none';
   }
+  if (page === 'coding') {
+    document.getElementById('coding-setup').style.display = '';
+    document.getElementById('coding-active').style.display = 'none';
+    document.getElementById('coding-review').style.display = 'none';
+    renderCodingCards();
+  }
 }
 
 document.querySelectorAll('.nav-item').forEach(item => {
@@ -2184,6 +2265,7 @@ function renderSessionCard() {
   let typeName = card.type;
   if (card.type === 'Compute') typeClass = 'card-type-compute';
   if (card.type === 'Visual') typeClass = 'card-type-visual';
+  if (card.type === 'Coding') typeClass = 'card-type-coding';
 
   let question = card.question || card.body || card.title;
 
@@ -2225,6 +2307,10 @@ function renderSessionCard() {
           <div class="error-tag" data-type="procedure-error" onclick="selectErrorType(this)">procedure-error</div>
           <div class="error-tag" data-type="scope-confusion" onclick="selectErrorType(this)">scope-confusion</div>
           <div class="error-tag" data-type="partial-recall" onclick="selectErrorType(this)">partial-recall</div>
+          <div class="error-tag" data-type="off-by-one" onclick="selectErrorType(this)">off-by-one</div>
+          <div class="error-tag" data-type="edge-case-miss" onclick="selectErrorType(this)">edge-case-miss</div>
+          <div class="error-tag" data-type="complexity-miss" onclick="selectErrorType(this)">complexity-miss</div>
+          <div class="error-tag" data-type="api-misuse" onclick="selectErrorType(this)">api-misuse</div>
         </div>
         <div class="self-explain" style="margin-top:12px;">What one-second check would have caught this?</div>
         <div class="btn-group">
@@ -2494,6 +2580,183 @@ async function gradeTeach(grade) {
   document.querySelectorAll('#teach-concept-list .recall-module-btn').forEach(b => b.classList.remove('selected'));
 }
 
+// ==================== CODING PRACTICE ====================
+let selectedCodingCard = null;
+
+function startCodingPractice() {
+  nav('coding');
+}
+
+function renderCodingCards() {
+  let modules = state?.curriculum?.modules || [];
+  let codingCards = [];
+  for (let mod of modules) {
+    let details = mod.card_details || [];
+    for (let card of details) {
+      if (card.type === 'Coding') {
+        codingCards.push({ ...card, moduleName: mod.name, moduleNum: mod.num });
+      }
+    }
+  }
+
+  let el = document.getElementById('coding-card-list');
+  if (codingCards.length) {
+    let html = codingCards.map(c =>
+      `<div class="recall-module-btn" data-id="${c.id}" onclick="selectCodingCard(this, '${c.id}')">${c.id}: ${escapeHtml(c.title)} <span style="color:var(--text-faint);font-size:11px;">(${escapeHtml(c.moduleName)})</span></div>`
+    ).join('');
+    el.innerHTML = `<div class="recall-module-select">${html}</div>`;
+  } else {
+    el.innerHTML = '<div style="color:var(--text-faint);">No coding cards in this curriculum. Coding cards appear for technical topics.</div>';
+  }
+}
+
+function selectCodingCard(el, id) {
+  document.querySelectorAll('#coding-card-list .recall-module-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedCodingCard = id;
+}
+
+function findCodingCard(id) {
+  for (let mod of state.curriculum.modules) {
+    let card = (mod.card_details || []).find(c => c.id === id);
+    if (card) return { ...card, moduleName: mod.name, moduleNum: mod.num };
+  }
+  return null;
+}
+
+function startCoding() {
+  if (!selectedCodingCard) { alert('Pick a coding challenge first.'); return; }
+  let card = findCodingCard(selectedCodingCard);
+  if (!card) return;
+
+  document.getElementById('coding-setup').style.display = 'none';
+  document.getElementById('coding-active').style.display = '';
+  document.getElementById('coding-review').style.display = 'none';
+  document.getElementById('coding-feedback-area').style.display = 'none';
+  document.getElementById('coding-feedback-btn').disabled = false;
+  document.getElementById('coding-feedback-btn').textContent = 'Get AI Feedback';
+  document.getElementById('coding-card-title').textContent = `${card.id}: ${card.title}`;
+  let metaParts = [`Module ${card.moduleNum}: ${card.moduleName}`];
+  if (card.language) metaParts.push(`Language: ${card.language}`);
+  if (card.constraints) metaParts.push(`Constraints: ${card.constraints}`);
+  document.getElementById('coding-card-meta').innerHTML = metaParts.join(' &middot; ');
+  document.getElementById('coding-card-question').textContent = card.question || card.body || card.title;
+  document.getElementById('coding-text').value = '';
+  document.getElementById('coding-text').focus();
+}
+
+async function getCodingFeedback() {
+  let card = findCodingCard(selectedCodingCard);
+  let userCode = document.getElementById('coding-text').value.trim();
+  if (!userCode) { alert('Write some code first.'); return; }
+
+  let btn = document.getElementById('coding-feedback-btn');
+  btn.disabled = true;
+  btn.textContent = 'Getting feedback...';
+  document.getElementById('coding-feedback-area').style.display = '';
+  document.getElementById('coding-feedback-content').innerHTML = '<div style="color:var(--text-faint);">Analyzing your code...</div>';
+
+  try {
+    let resp = await fetch('/api/coding/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code: userCode,
+        question: card.question || card.body || card.title,
+        validation: card.validation || '',
+        solution: card.solution || '',
+        language: card.language || '',
+        constraints: card.constraints || '',
+      })
+    });
+    let data = await resp.json();
+    document.getElementById('coding-feedback-content').innerHTML = simpleMarkdown(data.feedback || 'No feedback returned.');
+  } catch (e) {
+    document.getElementById('coding-feedback-content').innerHTML = '<div style="color:var(--red);">Failed to get feedback. Is the server running?</div>';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Get AI Feedback Again';
+}
+
+function simpleMarkdown(text) {
+  // Extract code blocks first to protect them from other replacements
+  let blocks = [];
+  let result = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+    let idx = blocks.length;
+    blocks.push(`<pre style="background:var(--surface-1);padding:12px;border-radius:6px;overflow-x:auto;margin:8px 0;font-family:'SF Mono',Menlo,Monaco,Consolas,monospace;font-size:13px;line-height:1.5;"><code>${code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').trimEnd()}</code></pre>`);
+    return `__CODEBLOCK_${idx}__`;
+  });
+  // Escape HTML in non-code parts
+  result = result.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // Inline code
+  result = result.replace(/`([^`]+)`/g, '<code style="background:var(--surface-1);padding:2px 6px;border-radius:3px;font-family:\'SF Mono\',Menlo,Monaco,Consolas,monospace;font-size:12px;">$1</code>');
+  // Bold
+  result = result.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Numbered lists
+  result = result.replace(/^(\d+)\.\s+/gm, '<span style="color:var(--text-faint);margin-right:4px;">$1.</span> ');
+  // Newlines
+  result = result.replace(/\n/g, '<br>');
+  // Restore code blocks
+  blocks.forEach((block, i) => {
+    result = result.replace(`__CODEBLOCK_${i}__`, block);
+  });
+  return result;
+}
+
+function finishCoding() {
+  let card = findCodingCard(selectedCodingCard);
+  let userCode = document.getElementById('coding-text').value;
+
+  document.getElementById('coding-active').style.display = 'none';
+  document.getElementById('coding-review').style.display = '';
+  document.getElementById('coding-yours').textContent = userCode;
+  document.getElementById('coding-reference').innerHTML = escapeHtml(card?.validation || card?.body || 'Review against the curriculum for the complete answer.');
+
+  let solEl = document.getElementById('coding-solution');
+  if (card?.solution) {
+    solEl.innerHTML = simpleMarkdown(card.solution);
+  } else {
+    solEl.innerHTML = `<div style="color:var(--text-faint);margin-bottom:12px;">No reference solution was generated with this curriculum.</div><button class="btn btn-ghost btn-sm" onclick="generateSolution()">Generate Reference Solution</button>`;
+  }
+}
+
+async function generateSolution() {
+  let card = findCodingCard(selectedCodingCard);
+  if (!card) return;
+  let solEl = document.getElementById('coding-solution');
+  solEl.innerHTML = '<div style="color:var(--text-faint);">Generating solution...</div>';
+
+  try {
+    let resp = await fetch('/api/coding/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code: '__GENERATE_SOLUTION__',
+        question: card.question || card.body || card.title,
+        validation: card.validation || '',
+        solution: '',
+        language: card.language || '',
+        constraints: card.constraints || '',
+      })
+    });
+    let data = await resp.json();
+    solEl.innerHTML = simpleMarkdown(data.feedback || 'Failed to generate solution.');
+  } catch (e) {
+    solEl.innerHTML = '<div style="color:var(--red);">Failed to generate solution. Is the server running?</div>';
+  }
+}
+
+async function gradeCoding(grade) {
+  let today = state.today;
+  let line = `${today} coding-${selectedCodingCard} | coding | ${grade} | 0`;
+  await appendHistory(line);
+
+  document.getElementById('coding-setup').style.display = '';
+  document.getElementById('coding-review').style.display = 'none';
+  selectedCodingCard = null;
+  document.querySelectorAll('#coding-card-list .recall-module-btn').forEach(b => b.classList.remove('selected'));
+}
+
 // ==================== CURRICULUM ====================
 function renderCurriculum() {
   let modules = state?.curriculum?.modules || [];
@@ -2538,6 +2801,7 @@ function showModuleDetail(num) {
     let typeClass = 'card-type-concept';
     if (c.type === 'Compute') typeClass = 'card-type-compute';
     if (c.type === 'Visual') typeClass = 'card-type-visual';
+    if (c.type === 'Coding') typeClass = 'card-type-coding';
     return `<li><span class="card-id">${c.id}</span><span class="card-type-badge ${typeClass}" style="font-size:10px;padding:2px 8px;">${c.type}</span> ${escapeHtml(c.title)}</li>`;
   }).join('');
 
@@ -2849,6 +3113,7 @@ async function refreshAll() {
     renderStudyList();
     renderRecallModules();
     renderTeachConcepts();
+    renderCodingCards();
     renderCurriculum();
     renderGraph();
     renderHistory();
