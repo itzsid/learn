@@ -8,7 +8,6 @@ import time
 from pathlib import Path
 
 DATA_DIR = Path(__file__).parent / "data"
-LEARN_HOME = Path.home() / "learn"
 
 DATA_FILES = ["server.py", "index.html", "CLAUDE.md", "LEARNING_THEORY.md"]
 
@@ -62,7 +61,7 @@ def _start_server(topic_dir):
 
 
 def learn():
-    """Create a new topic folder and start learning."""
+    """Create a new topic folder in the current directory and start learning."""
     if len(sys.argv) < 2:
         print("Usage: learn <topic>")
         print()
@@ -71,24 +70,11 @@ def learn():
         print("  learn music theory")
         print("  learn linear algebra")
         print()
-        print(f"Topics are stored in {LEARN_HOME}/")
-
-        # List existing topics
-        if LEARN_HOME.exists():
-            topics = sorted(
-                d.name
-                for d in LEARN_HOME.iterdir()
-                if d.is_dir() and (d / "server.py").exists()
-            )
-            if topics:
-                print()
-                print("Existing topics:")
-                for t in topics:
-                    print(f"  {t}")
+        print("Creates a folder in the current directory.")
         sys.exit(1)
 
     topic = "-".join(sys.argv[1:]).lower()
-    topic_dir = LEARN_HOME / topic
+    topic_dir = Path.cwd() / topic
 
     # Create topic folder and copy data files
     topic_dir.mkdir(parents=True, exist_ok=True)

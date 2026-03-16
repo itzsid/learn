@@ -17,14 +17,15 @@ uv tool install git+https://github.com/itzsid/learn.git
 Then:
 
 ```bash
-learn rust           # creates ~/learn/rust/, starts the app
-learn music theory   # creates ~/learn/music-theory/
+cd ~/topics          # or wherever you want to keep your topics
+learn rust           # creates ./rust/, starts the app
+learn music theory   # creates ./music-theory/
 
-cd ~/learn/rust
+cd rust
 start                # resume an existing topic
 ```
 
-Each topic gets its own folder under `~/learn/` with independent curriculum, progress, and lessons.
+Each topic gets its own folder with independent curriculum, progress, and lessons.
 
 ### Prerequisites
 
