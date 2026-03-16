@@ -1,6 +1,6 @@
 [project]
 name = "learn-tutor"
-version = "0.1.0"
+version = "0.2.0"
 description = "AI-powered personal tutor — learn any topic with spaced repetition"
 requires-python = ">=3.9"
 dependencies = [
