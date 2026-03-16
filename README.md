@@ -6,17 +6,30 @@ Powered by Claude Code as a backend. No databases, no accounts, no cloud — jus
 
 ![Dashboard](screenshots/dashboard.png)
 
-## One-Line Setup
+## Setup
 
 ```bash
-python3 server.py && open http://localhost:3000
+uv tool install learn-tutor        # install from PyPI
+# or install from source:
+uv tool install git+https://github.com/itzsid/learn.git
 ```
+
+Then:
+
+```bash
+learn rust           # creates ~/learn/rust/, starts the app
+learn music theory   # creates ~/learn/music-theory/
+
+cd ~/learn/rust
+start                # resume an existing topic
+```
+
+Each topic gets its own folder under `~/learn/` with independent curriculum, progress, and lessons.
 
 ### Prerequisites
 
-- **Python 3** (no pip packages needed for the server)
+- **Python 3.9+**
 - **[Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)** installed and authenticated (`claude` in your PATH)
-- **matplotlib + numpy + scipy** for visual cards: `pip install matplotlib numpy scipy`
 
 ## How It Works
 
@@ -81,30 +94,9 @@ lessons/           # One markdown lesson per module
 visuals/           # Generated matplotlib scripts + PNG outputs
 ```
 
-## Usage
-
-```bash
-# Start the server (auto-finds next port if 3000 is busy)
-python3 server.py
-
-# Or specify a port
-python3 server.py 8080
-
-# Or point to a specific Claude CLI binary
-python3 server.py --claude-path /usr/local/bin/claude
-```
-
-Open `http://localhost:3000` in your browser. Everything else happens in the UI.
-
 ## Resetting
 
-Click **Reset Topic** in the sidebar, or hit the API directly:
-
-```bash
-curl -X POST http://localhost:3000/api/reset
-```
-
-This clears all generated files and lets you start fresh with a new topic.
+Click **Reset Topic** in the sidebar to clear a topic's progress and start over.
 
 ## Design Principles
 

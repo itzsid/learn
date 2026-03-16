@@ -1,0 +1,2865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SRS — Learning System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #08090c;
+  --bg-warm: #0c0b0a;
+  --surface: #121318;
+  --surface2: #1a1b22;
+  --surface3: #22232d;
+  --border: #2a2b35;
+  --border-warm: #332e28;
+  --text: #e8e4df;
+  --text-dim: #8a8690;
+  --text-faint: #504d56;
+  --amber: #e8a84c;
+  --amber-dim: rgba(232,168,76,0.10);
+  --amber-glow: rgba(232,168,76,0.06);
+  --green: #5cb88a;
+  --green-dim: rgba(92,184,138,0.10);
+  --red: #d96b6b;
+  --red-dim: rgba(217,107,107,0.10);
+  --blue: #6ba3d9;
+  --blue-dim: rgba(107,163,217,0.10);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,0.10);
+  --yellow: #d4b356;
+  --yellow-dim: rgba(212,179,86,0.10);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-body: 'DM Sans', -apple-system, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ========== WELCOME SCREEN ========== */
+#welcome-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  background: var(--bg);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+#welcome-screen.leaving {
+  opacity: 0;
+  transform: scale(1.02);
+  pointer-events: none;
+}
+#welcome-screen.hidden { display: none; }
+
+.welcome-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.welcome-bg canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.welcome-glow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.08;
+  animation: glowDrift 20s ease-in-out infinite;
+}
+.welcome-glow.g1 {
+  background: var(--amber);
+  top: 20%;
+  left: 30%;
+}
+.welcome-glow.g2 {
+  background: var(--purple);
+  bottom: 10%;
+  right: 20%;
+  animation-delay: -8s;
+  animation-duration: 25s;
+}
+@keyframes glowDrift {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(40px, -30px); }
+  66% { transform: translate(-20px, 20px); }
+}
+
+.welcome-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 640px;
+  padding: 40px;
+}
+
+.welcome-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--amber-dim);
+  border: 1px solid rgba(232,168,76,0.15);
+  margin-bottom: 40px;
+  animation: fadeUp 0.8s ease both;
+}
+.welcome-mark svg {
+  width: 28px;
+  height: 28px;
+  color: var(--amber);
+}
+
+.welcome-title {
+  font-family: var(--font-display);
+  font-size: 54px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+  color: var(--text);
+  margin-bottom: 16px;
+  animation: fadeUp 0.8s ease 0.1s both;
+}
+.welcome-title em {
+  font-style: italic;
+  color: var(--amber);
+}
+
+.welcome-sub {
+  font-size: 17px;
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin-bottom: 48px;
+  animation: fadeUp 0.8s ease 0.2s both;
+}
+
+.welcome-input-wrap {
+  position: relative;
+  animation: fadeUp 0.8s ease 0.3s both;
+}
+.welcome-input {
+  width: 100%;
+  padding: 20px 140px 20px 24px;
+  font-family: var(--font-body);
+  font-size: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.welcome-input::placeholder { color: var(--text-faint); }
+.welcome-input:focus {
+  border-color: rgba(232,168,76,0.4);
+  box-shadow: 0 0 0 4px rgba(232,168,76,0.06), 0 8px 32px rgba(0,0,0,0.3);
+}
+.welcome-submit {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 12px 28px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--amber);
+  color: var(--bg);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: filter 0.2s, transform 0.15s;
+}
+.welcome-submit:hover { filter: brightness(1.1); transform: translateY(-50%) scale(1.02); }
+.welcome-submit:active { transform: translateY(-50%) scale(0.98); }
+
+.welcome-examples {
+  margin-top: 28px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  animation: fadeUp 0.8s ease 0.45s both;
+}
+.welcome-ex {
+  padding: 8px 16px;
+  font-size: 13px;
+  color: var(--text-faint);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.welcome-ex:hover {
+  color: var(--amber);
+  border-color: rgba(232,168,76,0.25);
+  background: var(--amber-dim);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@keyframes loadingBar {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(250%); }
+  100% { transform: translateX(-100%); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========== GENERATION PROGRESS SCREEN ========== */
+
+/* Orbital rings around the icon */
+.gen-orbit-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  margin-bottom: 32px;
+}
+.gen-orbit-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  border-top-color: var(--amber);
+  border-right-color: rgba(232,168,76,0.2);
+  animation: orbitSpin 3s linear infinite;
+  opacity: 0.6;
+}
+.gen-orbit-ring.r2 {
+  inset: -8px;
+  border-top-color: var(--purple);
+  border-right-color: rgba(167,139,250,0.15);
+  animation-duration: 5s;
+  animation-direction: reverse;
+  opacity: 0.35;
+}
+.gen-mark-active {
+  animation: none;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 0 24px rgba(232,168,76,0.12);
+}
+@keyframes orbitSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Status text */
+.gen-status-text {
+  margin-bottom: 8px;
+  animation: fadeUp 0.6s ease 0.1s both;
+}
+
+/* Detail text with cursor blink */
+.gen-detail-text {
+  font-size: 13px;
+  color: var(--text-faint);
+  font-style: italic;
+  min-height: 20px;
+  margin-bottom: 4px;
+  transition: opacity 0.4s ease;
+  animation: fadeUp 0.6s ease 0.15s both;
+}
+.gen-detail-text:empty {
+  opacity: 0;
+}
+.gen-detail-text:not(:empty)::after {
+  content: '▍';
+  display: inline-block;
+  margin-left: 2px;
+  color: var(--amber);
+  animation: cursorBlink 1s steps(2) infinite;
+  font-style: normal;
+}
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Step checklist */
+.gen-steps-list {
+  text-align: left;
+  max-width: 400px;
+  margin: 24px auto 0;
+  font-size: 14px;
+}
+.gen-steps-list .gen-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  transition: background 0.4s ease, opacity 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+.gen-steps-list .gen-step.step-done {
+  opacity: 0.55;
+}
+.gen-steps-list .gen-step.step-active {
+  background: var(--amber-dim);
+  opacity: 1;
+}
+/* Shimmer effect on active step */
+.gen-steps-list .gen-step.step-active::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(232,168,76,0.06) 50%, transparent 100%);
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Step icons */
+.gen-step-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+.gen-step-icon .check-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.gen-step-icon .check-circle svg {
+  width: 12px;
+  height: 12px;
+  color: var(--bg);
+  stroke-width: 3;
+}
+@keyframes popIn {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.gen-step-icon .pending-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-faint);
+  transition: border-color 0.3s;
+}
+.gen-step.step-active .pending-dot {
+  border-color: var(--amber);
+  background: var(--amber);
+  animation: activePulse 1.5s ease-in-out infinite;
+}
+@keyframes activePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(232,168,76,0.4); }
+  50% { box-shadow: 0 0 0 5px rgba(232,168,76,0); }
+}
+
+.gen-step-label {
+  position: relative;
+  z-index: 1;
+  color: var(--text-dim);
+  font-weight: 400;
+  transition: color 0.3s;
+}
+.gen-step.step-active .gen-step-label {
+  color: var(--text);
+  font-weight: 500;
+}
+.gen-step.step-done .gen-step-label {
+  color: var(--text-dim);
+}
+
+/* Progress bar */
+.gen-bar-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 28px;
+  animation: fadeUp 0.6s ease 0.2s both;
+}
+.gen-bar-track {
+  width: 280px;
+  height: 4px;
+  background: var(--surface3);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+.gen-bar-fill {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--amber), #f0c060);
+  border-radius: 2px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 1;
+}
+.gen-bar-glow {
+  position: absolute;
+  top: -4px;
+  left: 0;
+  width: 100%;
+  height: 12px;
+  background: linear-gradient(90deg, transparent, rgba(232,168,76,0.3), transparent);
+  filter: blur(4px);
+  animation: barGlowPulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes barGlowPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+.gen-bar-pct {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--amber);
+  min-width: 36px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Dashboard generation banner */
+.dash-gen-banner {
+  background: var(--surface2);
+  border-left: 3px solid var(--amber);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  animation: fadeUp 0.4s ease-out;
+}
+.dash-gen-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(232,168,76,0.05) 50%, transparent 100%);
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+.dash-gen-banner.done {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.dash-gen-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+.dash-gen-banner-icon .pending-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--amber);
+  animation: activePulse 1.5s ease-in-out infinite;
+}
+.dash-gen-banner-text {
+  flex: 1;
+  min-width: 0;
+}
+.dash-gen-banner-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.dash-gen-banner-bar-wrap {
+  height: 4px;
+  background: var(--surface);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.dash-gen-banner-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--amber), #f0c060);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+.dash-gen-banner-pct {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+  min-width: 32px;
+  text-align: right;
+}
+
+/* ========== APP SHELL ========== */
+#app-shell {
+  display: none;
+  height: 100vh;
+}
+#app-shell.active {
+  display: flex;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 232px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  flex-shrink: 0;
+}
+.sidebar-brand {
+  padding: 0 24px 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.sidebar-brand h1 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--amber);
+  letter-spacing: -0.3px;
+}
+.sidebar-brand span {
+  font-size: 12px;
+  color: var(--text-faint);
+  display: block;
+  margin-top: 2px;
+}
+.nav-section {
+  padding: 18px 24px 6px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-faint);
+  font-weight: 600;
+}
+.nav-item {
+  padding: 10px 24px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.15s;
+  border-left: 2px solid transparent;
+  margin: 1px 0;
+}
+.nav-item:hover { background: rgba(255,255,255,0.03); color: var(--text); }
+.nav-item.active {
+  color: var(--amber);
+  background: var(--amber-dim);
+  border-left-color: var(--amber);
+}
+.nav-item .icon { width: 18px; text-align: center; font-size: 14px; opacity: 0.7; }
+.nav-item.active .icon { opacity: 1; }
+.nav-spacer { flex: 1; }
+.nav-reset:hover { background: var(--red-dim) !important; color: var(--red) !important; }
+.reset-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.reset-dialog { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; max-width: 400px; text-align: center; }
+.reset-dialog h3 { font-family: var(--font-display); font-size: 22px; margin-bottom: 8px; }
+.reset-dialog p { color: var(--text-dim); font-size: 14px; margin-bottom: 24px; }
+.reset-dialog .btn-row { display: flex; gap: 12px; justify-content: center; }
+.reset-dialog button { padding: 10px 24px; border-radius: var(--radius-sm); border: none; cursor: pointer; font-family: var(--font-body); font-size: 14px; font-weight: 500; }
+.reset-dialog .btn-cancel { background: var(--surface3); color: var(--text-dim); }
+.reset-dialog .btn-cancel:hover { background: var(--border); }
+.reset-dialog .btn-confirm { background: var(--red); color: #fff; }
+.reset-dialog .btn-confirm:hover { opacity: 0.85; }
+
+/* Main content */
+.main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 36px 44px;
+}
+.main::-webkit-scrollbar { width: 5px; }
+.main::-webkit-scrollbar-track { background: transparent; }
+.main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.page { display: none; }
+.page.active { display: block; animation: fadeIn 0.3s ease; }
+
+.page-header { margin-bottom: 32px; }
+.page-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: -0.3px;
+  margin-bottom: 4px;
+}
+.page-sub {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* Stat cards */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 28px;
+}
+@media (max-width: 1100px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--border);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.stat-card:hover::before { opacity: 1; }
+.stat-card .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-faint);
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+.stat-card .value {
+  font-family: var(--font-display);
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1;
+}
+.stat-card .sub {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-top: 8px;
+}
+
+/* Zone meter */
+.zone-meter {
+  height: 6px;
+  background: var(--surface3);
+  border-radius: 3px;
+  margin-top: 14px;
+  position: relative;
+  overflow: visible;
+}
+.zone-meter .fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+.zone-meter .tick {
+  position: absolute;
+  top: -3px;
+  width: 1px;
+  height: 12px;
+  background: var(--text-faint);
+  opacity: 0.5;
+}
+.zone-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-faint);
+  margin-top: 4px;
+}
+
+/* Progress bar */
+.progress-bar {
+  height: 4px;
+  background: var(--surface3);
+  border-radius: 2px;
+  margin-top: 10px;
+}
+.progress-bar .fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--purple);
+  transition: width 0.6s ease;
+}
+
+/* Panel */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 18px;
+}
+.panel-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 400;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-faint);
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.015); }
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.badge-pending { background: var(--surface3); color: var(--text-dim); }
+.badge-active { background: var(--amber-dim); color: var(--amber); }
+.badge-skip { background: var(--green-dim); color: var(--green); }
+.badge-locked { background: var(--surface3); color: var(--text-faint); }
+.badge-mastered { background: var(--purple-dim); color: var(--purple); }
+
+/* Dots */
+.dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+.dot-correct { background: var(--green); }
+.dot-incorrect { background: var(--red); }
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 22px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-primary { background: var(--amber); color: var(--bg); }
+.btn-primary:hover { filter: brightness(1.1); }
+.btn-ghost { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--surface2); color: var(--text); }
+.btn-green { background: var(--green); color: var(--bg); }
+.btn-red { background: var(--red); color: var(--bg); }
+.btn-sm { padding: 6px 14px; font-size: 12px; }
+.btn-group { display: flex; gap: 10px; margin-top: 16px; }
+
+/* Mode selector */
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.mode-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+.mode-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.mode-card:hover { border-color: var(--amber); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+.mode-card:hover::after { opacity: 1; }
+.mode-card .mode-icon { font-size: 24px; margin-bottom: 14px; opacity: 0.8; }
+.mode-card .mode-name {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 400;
+  margin-bottom: 6px;
+}
+.mode-card .mode-desc { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+.mode-card .mode-tag {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+/* Session area */
+.session-area { max-width: 720px; }
+.session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.session-progress { display: flex; gap: 5px; align-items: center; }
+.session-pip {
+  width: 28px; height: 4px;
+  border-radius: 2px;
+  background: var(--surface3);
+  transition: background 0.3s;
+}
+.session-pip.done { background: var(--green); }
+.session-pip.wrong { background: var(--red); }
+.session-pip.current { background: var(--amber); }
+
+.card-type-badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+  display: inline-block;
+}
+.card-type-concept { background: var(--blue-dim); color: var(--blue); }
+.card-type-compute { background: var(--yellow-dim); color: var(--yellow); }
+.card-type-visual { background: var(--purple-dim); color: var(--purple); }
+
+.question-text {
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1.5;
+  margin-bottom: 24px;
+  font-weight: 400;
+}
+
+.answer-area textarea {
+  width: 100%;
+  min-height: 140px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 16px;
+  resize: vertical;
+  line-height: 1.6;
+}
+.answer-area textarea:focus { outline: none; border-color: rgba(232,168,76,0.4); }
+.answer-area textarea::placeholder { color: var(--text-faint); }
+
+/* Reveal section */
+.reveal-section {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-top: 16px;
+  display: none;
+}
+.reveal-section.visible { display: block; }
+.reveal-section h3 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-faint);
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+.reveal-section .reference { font-size: 14px; line-height: 1.7; color: var(--text); }
+
+/* Grade buttons */
+.grade-buttons { display: flex; gap: 10px; margin-top: 20px; }
+.grade-btn {
+  flex: 1;
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+.grade-btn:hover { transform: translateY(-1px); }
+.grade-btn .grade-label { font-size: 14px; font-weight: 600; display: block; }
+.grade-btn .grade-desc { font-size: 11px; color: var(--text-dim); display: block; margin-top: 2px; }
+.grade-btn.grade-got-it { border-color: rgba(92,184,138,0.3); }
+.grade-btn.grade-got-it:hover { background: var(--green-dim); }
+.grade-btn.grade-got-it .grade-label { color: var(--green); }
+.grade-btn.grade-partial { border-color: rgba(212,179,86,0.3); }
+.grade-btn.grade-partial:hover { background: var(--yellow-dim); }
+.grade-btn.grade-partial .grade-label { color: var(--yellow); }
+.grade-btn.grade-missed { border-color: rgba(217,107,107,0.3); }
+.grade-btn.grade-missed:hover { background: var(--red-dim); }
+.grade-btn.grade-missed .grade-label { color: var(--red); }
+
+/* Error classification */
+.error-classify {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  display: none;
+}
+.error-classify.visible { display: block; }
+.error-classify h4 { font-size: 12px; color: var(--text-dim); margin-bottom: 10px; }
+.error-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.error-tag {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.error-tag:hover { border-color: var(--red); color: var(--red); }
+.error-tag.selected { border-color: var(--red); background: var(--red-dim); color: var(--red); }
+
+/* Recall */
+.recall-module-select { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+.recall-module-btn {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.recall-module-btn:hover { border-color: var(--amber); color: var(--amber); }
+.recall-module-btn.selected { border-color: var(--amber); background: var(--amber-dim); color: var(--amber); }
+
+.timer {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 400;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+}
+.timer.running { color: var(--amber); }
+
+/* Graph */
+.graph-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  min-height: 400px;
+}
+.graph-container svg { width: 100%; height: 400px; }
+
+/* Module detail */
+.module-detail {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-top: 20px;
+  display: none;
+}
+.module-detail.visible { display: block; }
+.module-detail h3 { font-family: var(--font-display); font-size: 20px; font-weight: 400; margin-bottom: 4px; }
+.module-detail .meta { font-size: 13px; color: var(--text-dim); margin-bottom: 16px; }
+.card-list { list-style: none; }
+.card-list li {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card-list li .card-id { font-size: 12px; font-weight: 600; color: var(--text-faint); min-width: 36px; }
+
+/* Empty states */
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-dim);
+}
+.empty-state .empty-icon { font-size: 36px; margin-bottom: 14px; opacity: 0.4; }
+.empty-state h3 { font-family: var(--font-display); font-size: 18px; color: var(--text); margin-bottom: 8px; font-weight: 400; }
+.empty-state p { font-size: 14px; line-height: 1.6; max-width: 400px; margin: 0 auto; }
+
+/* Summary */
+.summary-panel { max-width: 500px; margin: 0 auto; text-align: center; }
+.summary-panel .big-number {
+  font-family: var(--font-display);
+  font-size: 72px;
+  font-weight: 400;
+  line-height: 1;
+  margin: 20px 0 8px;
+}
+.summary-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin: 24px 0; }
+.summary-stat .val { font-family: var(--font-display); font-size: 28px; font-weight: 400; }
+.summary-stat .lbl { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Two column */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+/* Self-explain prompt */
+.self-explain {
+  background: var(--amber-dim);
+  border: 1px solid rgba(232,168,76,0.15);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--amber);
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* Teach mode */
+.teach-prompt {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.teach-prompt .concept-name { font-family: var(--font-display); font-size: 22px; font-weight: 400; margin-bottom: 8px; }
+.teach-prompt .teach-instruction { font-size: 14px; color: var(--text-dim); line-height: 1.5; }
+
+/* Study / Lesson content */
+.lesson-content { line-height: 1.75; font-size: 15px; color: var(--text); }
+.lesson-content h1 { font-family: var(--font-display); font-size: 28px; font-weight: 400; margin: 0 0 8px; letter-spacing: -0.3px; }
+.lesson-content h2 { font-family: var(--font-display); font-size: 21px; font-weight: 400; margin: 32px 0 12px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--text); }
+.lesson-content h3 { font-size: 16px; font-weight: 600; margin: 24px 0 8px; color: var(--text); }
+.lesson-content p { margin: 0 0 14px; }
+.lesson-content strong { color: var(--text); font-weight: 600; }
+.lesson-content em { color: var(--amber); font-style: italic; }
+.lesson-content hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+.lesson-content ul, .lesson-content ol { margin: 0 0 14px; padding-left: 24px; }
+.lesson-content li { margin-bottom: 4px; }
+.lesson-content a { color: var(--amber); text-decoration: underline; text-underline-offset: 2px; }
+.lesson-content pre {
+  background: #0c0d12;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+  overflow-x: auto;
+  margin: 12px 0 16px;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #c9d1d9;
+}
+.lesson-content code {
+  background: var(--surface3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+.lesson-content pre code { background: none; padding: 0; font-size: inherit; }
+.lesson-content table { margin: 12px 0 16px; font-size: 13px; }
+.lesson-content th { background: var(--surface2); }
+.lesson-content blockquote {
+  border-left: 3px solid var(--amber);
+  padding: 8px 16px;
+  margin: 12px 0 16px;
+  background: var(--amber-dim);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.study-module-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.study-module-card:hover { border-color: var(--amber); transform: translateX(4px); }
+.study-module-card .smc-num {
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--text-faint);
+  min-width: 36px;
+  text-align: center;
+}
+.study-module-card .smc-info { flex: 1; }
+.study-module-card .smc-name { font-family: var(--font-display); font-size: 17px; margin-bottom: 2px; }
+.study-module-card .smc-focus { font-size: 13px; color: var(--text-dim); }
+.study-module-card .smc-badge {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+.study-module-card.has-lesson .smc-num { color: var(--amber); }
+.study-module-card.no-lesson { opacity: 0.5; }
+.study-module-card.no-lesson:hover { transform: none; border-color: var(--border); cursor: default; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.fade-in { animation: fadeIn 0.3s ease; }
+
+code {
+  background: var(--surface3);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== WELCOME SCREEN ==================== -->
+<div id="welcome-screen">
+  <div class="welcome-bg">
+    <canvas id="constellation-canvas"></canvas>
+    <div class="welcome-glow g1"></div>
+    <div class="welcome-glow g2"></div>
+  </div>
+  <div class="welcome-content">
+    <!-- Step 1: Topic -->
+    <div id="welcome-step-1">
+      <div class="welcome-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3L2 12h3v8h14v-8h3L12 3z"/>
+          <path d="M9 21v-6h6v6"/>
+        </svg>
+      </div>
+      <h1 class="welcome-title">What do you want<br>to <em>learn</em>?</h1>
+      <p class="welcome-sub">Spaced repetition, tailored to you. Name any topic and<br>your personal curriculum will be built in seconds.</p>
+      <div class="welcome-input-wrap">
+        <input type="text" class="welcome-input" id="topic-input" placeholder="Rust, music theory, organic chemistry..." autocomplete="off" autofocus>
+        <button class="welcome-submit" id="topic-submit" onclick="goToCalibration()">Begin</button>
+      </div>
+      <div class="welcome-examples">
+        <span class="welcome-ex" onclick="pickExample(this)">Linear Algebra</span>
+        <span class="welcome-ex" onclick="pickExample(this)">AWS Solutions Architect</span>
+        <span class="welcome-ex" onclick="pickExample(this)">Rust</span>
+        <span class="welcome-ex" onclick="pickExample(this)">Music Theory</span>
+        <span class="welcome-ex" onclick="pickExample(this)">Organic Chemistry</span>
+      </div>
+    </div>
+
+    <!-- Step 2: Waiting for calibration questions -->
+    <div id="welcome-step-2" style="display:none;">
+      <div class="welcome-mark" style="animation:pulse 2s ease-in-out infinite;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 6v6l4 2"/>
+        </svg>
+      </div>
+      <h1 class="welcome-title" style="font-size:36px;">Preparing questions...</h1>
+      <p class="welcome-sub" id="calibration-topic-label">Generating calibration questions tailored to your topic</p>
+      <div style="width:200px;height:3px;background:var(--surface3);border-radius:2px;margin:24px auto 0;overflow:hidden;">
+        <div style="width:30%;height:100%;background:var(--amber);border-radius:2px;animation:loadingBar 2s ease-in-out infinite;"></div>
+      </div>
+    </div>
+
+    <!-- Step 3: Answer calibration questions -->
+    <div id="welcome-step-3-cal" style="display:none;">
+      <div class="welcome-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9 12l2 2 4-4"/>
+        </svg>
+      </div>
+      <h1 class="welcome-title" style="font-size:36px;">Let's see where you are</h1>
+      <p class="welcome-sub" id="cal-questions-topic"></p>
+      <div style="text-align:left;max-width:560px;margin:0 auto;" id="cal-questions-container"></div>
+      <div style="max-width:560px;margin:20px auto 0;">
+        <button class="btn btn-primary" style="width:100%;padding:14px;font-size:16px;border-radius:var(--radius-sm);" onclick="submitCalibration()">Build my curriculum</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Generating -->
+    <div id="welcome-step-3" style="display:none;">
+      <!-- Animated orbital mark -->
+      <div class="gen-orbit-wrap">
+        <div class="gen-orbit-ring"></div>
+        <div class="gen-orbit-ring r2"></div>
+        <div class="welcome-mark gen-mark-active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3L2 12h3v8h14v-8h3L12 3z"/>
+            <path d="M9 21v-6h6v6"/>
+          </svg>
+        </div>
+      </div>
+      <h1 class="welcome-title" style="font-size:36px;animation:fadeUp 0.6s ease both;">Building your curriculum</h1>
+      <p class="welcome-sub gen-status-text" id="generating-status">Starting generation...</p>
+      <p id="gen-progress-detail" class="gen-detail-text"></p>
+      <div id="gen-progress-list" class="gen-steps-list"></div>
+      <div class="gen-bar-wrap">
+        <div class="gen-bar-track">
+          <div id="gen-progress-bar" class="gen-bar-fill"></div>
+          <div class="gen-bar-glow"></div>
+        </div>
+        <span id="gen-progress-pct" class="gen-bar-pct">0%</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== APP SHELL ==================== -->
+<div id="app-shell">
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <h1 id="sidebar-title">SRS</h1>
+      <span id="sidebar-topic">Learning System</span>
+    </div>
+    <div class="nav-section">Overview</div>
+    <div class="nav-item active" data-page="dashboard"><span class="icon">&#9673;</span> Dashboard</div>
+    <div class="nav-section">Study</div>
+    <div class="nav-item" data-page="study"><span class="icon">&#9671;</span> Lessons</div>
+    <div class="nav-section">Practice</div>
+    <div class="nav-item" data-page="learn"><span class="icon">&#9654;</span> Start Session</div>
+    <div class="nav-item" data-page="recall"><span class="icon">&#9634;</span> Free Recall</div>
+    <div class="nav-item" data-page="teach"><span class="icon">&#9672;</span> Teach Back</div>
+    <div class="nav-section">Browse</div>
+    <div class="nav-item" data-page="curriculum"><span class="icon">&#9638;</span> Curriculum</div>
+    <div class="nav-item" data-page="graph"><span class="icon">&#9678;</span> Knowledge Graph</div>
+    <div class="nav-spacer"></div>
+    <div class="nav-item" data-page="history"><span class="icon">&#9719;</span> History</div>
+    <div class="nav-item nav-reset" id="btn-reset" style="color:var(--red);margin-top:8px;"><span class="icon">&#10227;</span> Reset Topic</div>
+  </div>
+
+  <div class="main">
+    <!-- STUDY / LESSONS -->
+    <div class="page" id="page-study">
+      <div class="page-header">
+        <div class="page-title">Lessons</div>
+        <div class="page-sub">Learn the material before you practice. Each lesson explains concepts with worked examples.</div>
+      </div>
+      <div id="study-module-list"></div>
+      <div id="study-lesson" style="display:none;">
+        <div style="margin-bottom:20px;">
+          <button class="btn btn-ghost btn-sm" onclick="backToStudyList()">&larr; All Modules</button>
+        </div>
+        <div class="panel" id="study-content" style="max-width:780px;"></div>
+        <div style="max-width:780px;margin-top:20px;display:flex;justify-content:space-between;align-items:center;">
+          <button class="btn btn-ghost" id="study-prev" onclick="studyPrev()" style="display:none;">&larr; Previous</button>
+          <span></span>
+          <button class="btn btn-primary" id="study-next" onclick="studyNext()">Next Module &rarr;</button>
+        </div>
+        <div class="self-explain" style="max-width:780px;margin-top:16px;">
+          Finished reading? Test yourself: head to <a href="#" onclick="nav('learn');return false;" style="color:var(--amber);text-decoration:underline;">Start Session</a> or <a href="#" onclick="nav('teach');return false;" style="color:var(--amber);text-decoration:underline;">Teach Back</a> to solidify what you just learned.
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub" id="dash-date"></div>
+      </div>
+      <div class="dash-gen-banner" id="dash-gen-banner" style="display:none;">
+        <div class="dash-gen-banner-content">
+          <div class="dash-gen-banner-icon">
+            <div class="pending-dot"></div>
+          </div>
+          <div class="dash-gen-banner-text">
+            <div class="dash-gen-banner-label" id="dash-gen-label">Generating lessons...</div>
+            <div class="dash-gen-banner-bar-wrap">
+              <div class="dash-gen-banner-bar" id="dash-gen-bar"></div>
+            </div>
+          </div>
+          <span class="dash-gen-banner-pct" id="dash-gen-pct">0%</span>
+        </div>
+      </div>
+      <div class="stat-grid" id="dash-stats"></div>
+      <div class="two-col">
+        <div class="panel" id="dash-modules">
+          <div class="panel-title">Modules</div>
+          <div id="dash-module-table"></div>
+        </div>
+        <div>
+          <div class="panel" id="dash-errors">
+            <div class="panel-title">Error Patterns</div>
+            <div id="dash-error-table"></div>
+          </div>
+          <div class="panel" id="dash-strengths">
+            <div class="panel-title">Strengths</div>
+            <div id="dash-strength-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEARN -->
+    <div class="page" id="page-learn">
+      <div id="learn-select">
+        <div class="page-header">
+          <div class="page-title">Learn</div>
+          <div class="page-sub">Choose how you want to practice. Each mode targets different aspects of deep learning.</div>
+        </div>
+        <div class="mode-grid">
+          <div class="mode-card" onclick="startReviewSession()">
+            <div class="mode-icon">&#9654;</div>
+            <div class="mode-name">SRS Review</div>
+            <div class="mode-desc">Spaced repetition cards due today. Concept, compute, and visual cards with self-assessment.</div>
+            <div class="mode-tag" style="background:var(--green-dim);color:var(--green);" id="due-tag">0 cards due</div>
+          </div>
+          <div class="mode-card" onclick="nav('recall')">
+            <div class="mode-icon">&#9634;</div>
+            <div class="mode-name">Free Recall</div>
+            <div class="mode-desc">Pick a module. Write everything you know from memory. The highest-effectiveness retrieval format.</div>
+            <div class="mode-tag" style="background:var(--blue-dim);color:var(--blue);">Generation effect</div>
+          </div>
+          <div class="mode-card" onclick="nav('teach')">
+            <div class="mode-icon">&#9672;</div>
+            <div class="mode-name">Teach Back</div>
+            <div class="mode-desc">Explain a concept as if teaching a peer. Forces organization and reveals gaps.</div>
+            <div class="mode-tag" style="background:var(--yellow-dim);color:var(--yellow);">Self-explanation</div>
+          </div>
+          <div class="mode-card" onclick="startMixedPractice()">
+            <div class="mode-icon">&#11041;</div>
+            <div class="mode-name">Mixed Practice</div>
+            <div class="mode-desc">Interleaved problems from multiple modules. Improves discrimination between methods.</div>
+            <div class="mode-tag" style="background:var(--purple-dim);color:var(--purple);">Interleaving</div>
+          </div>
+        </div>
+      </div>
+      <div id="learn-session" style="display:none;">
+        <div class="session-area fade-in">
+          <div class="session-header">
+            <div>
+              <span style="font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:1px;font-weight:600;" id="session-label">SRS Review</span>
+              <span style="font-size:13px;color:var(--text-faint);margin-left:12px;" id="session-counter"></span>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="endSession()">End Session</button>
+          </div>
+          <div class="session-progress" id="session-pips"></div>
+          <div style="margin-top:24px;" id="session-card-area"></div>
+        </div>
+      </div>
+      <div id="learn-summary" style="display:none;">
+        <div class="summary-panel fade-in" id="summary-content"></div>
+      </div>
+    </div>
+
+    <!-- FREE RECALL -->
+    <div class="page" id="page-recall">
+      <div class="page-header">
+        <div class="page-title">Free Recall</div>
+        <div class="page-sub">Close your materials. Write everything you know. The highest-effectiveness retrieval format.</div>
+      </div>
+      <div id="recall-setup">
+        <div class="panel">
+          <div class="panel-title">Pick a module</div>
+          <div class="recall-module-select" id="recall-modules"></div>
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="startRecall()">Start Recall</button>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-dim);">
+              Timer: <select id="recall-timer-select" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:13px;">
+                <option value="120">2 min</option>
+                <option value="300" selected>5 min</option>
+                <option value="600">10 min</option>
+                <option value="0">No limit</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div id="recall-active" style="display:none;" class="session-area">
+        <div class="timer" id="recall-timer">5:00</div>
+        <div id="recall-module-name" style="font-family:var(--font-display);font-size:18px;margin-bottom:12px;"></div>
+        <textarea id="recall-text" placeholder="Write everything you know about this module..." style="width:100%;min-height:300px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font-body);font-size:14px;padding:16px;resize:vertical;line-height:1.6;"></textarea>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="finishRecall()">Done &mdash; Show Reference</button>
+        </div>
+      </div>
+      <div id="recall-review" style="display:none;" class="session-area fade-in">
+        <h3 style="font-family:var(--font-display);font-size:20px;font-weight:400;margin-bottom:16px;">Compare Your Recall</h3>
+        <div class="two-col">
+          <div>
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:8px;font-weight:600;">Your recall</div>
+            <div class="panel" id="recall-yours" style="white-space:pre-wrap;font-size:14px;line-height:1.7;min-height:200px;"></div>
+          </div>
+          <div>
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:8px;font-weight:600;">Module reference</div>
+            <div class="panel" id="recall-reference" style="font-size:14px;line-height:1.7;min-height:200px;"></div>
+          </div>
+        </div>
+        <div class="self-explain">What did you miss? Why? Note the gaps &mdash; these become your priority for next session.</div>
+        <div class="btn-group">
+          <button class="btn btn-ghost" onclick="resetRecall()">Try Another Module</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEACH BACK -->
+    <div class="page" id="page-teach">
+      <div class="page-header">
+        <div class="page-title">Teach Back</div>
+        <div class="page-sub">Explain a concept as if teaching someone. Forces organization and reveals understanding gaps.</div>
+      </div>
+      <div id="teach-setup">
+        <div class="panel">
+          <div class="panel-title">Pick a concept to teach</div>
+          <div id="teach-concept-list"></div>
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="startTeach()">Start Teaching</button>
+          </div>
+        </div>
+      </div>
+      <div id="teach-active" style="display:none;" class="session-area fade-in">
+        <div class="teach-prompt">
+          <div class="concept-name" id="teach-concept-name"></div>
+          <div class="teach-instruction">Explain this concept clearly enough that someone unfamiliar could understand it. Cover: what it is, why it matters, and how it connects to related ideas.</div>
+        </div>
+        <div class="answer-area">
+          <textarea id="teach-text" placeholder="Explain this concept in your own words..."></textarea>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="finishTeach()">Done &mdash; Show Reference</button>
+        </div>
+      </div>
+      <div id="teach-review" style="display:none;" class="session-area fade-in">
+        <h3 style="font-family:var(--font-display);font-size:20px;font-weight:400;margin-bottom:16px;">Compare Your Explanation</h3>
+        <div class="two-col">
+          <div>
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:8px;font-weight:600;">Your explanation</div>
+            <div class="panel" id="teach-yours" style="white-space:pre-wrap;font-size:14px;line-height:1.7;"></div>
+          </div>
+          <div>
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:8px;font-weight:600;">Reference</div>
+            <div class="panel" id="teach-reference" style="font-size:14px;line-height:1.7;"></div>
+          </div>
+        </div>
+        <div class="self-explain">Self-explanation check: What key points did you include? What did you miss? How would you improve your explanation?</div>
+        <div class="grade-buttons">
+          <div class="grade-btn grade-got-it" onclick="gradeTeach('correct')">
+            <span class="grade-label">Complete</span>
+            <span class="grade-desc">Covered all key points</span>
+          </div>
+          <div class="grade-btn grade-partial" onclick="gradeTeach('partial')">
+            <span class="grade-label">Partial</span>
+            <span class="grade-desc">Some gaps in explanation</span>
+          </div>
+          <div class="grade-btn grade-missed" onclick="gradeTeach('incorrect')">
+            <span class="grade-label">Incomplete</span>
+            <span class="grade-desc">Major gaps or errors</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CURRICULUM -->
+    <div class="page" id="page-curriculum">
+      <div class="page-header">
+        <div class="page-title">Curriculum</div>
+        <div class="page-sub" id="curriculum-sub">Browse your modules and cards.</div>
+      </div>
+      <div id="curriculum-content"></div>
+      <div class="module-detail" id="module-detail"></div>
+    </div>
+
+    <!-- KNOWLEDGE GRAPH -->
+    <div class="page" id="page-graph">
+      <div class="page-header">
+        <div class="page-title">Knowledge Graph</div>
+        <div class="page-sub">Module dependencies and mastery flow.</div>
+      </div>
+      <div class="graph-container" id="graph-container"></div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="page" id="page-history">
+      <div class="page-header">
+        <div class="page-title">History</div>
+        <div class="page-sub">All card reviews and session results.</div>
+      </div>
+      <div class="panel" id="history-content"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== STATE ====================
+let state = null;
+let currentSession = null;
+let recallTimer = null;
+let selectedRecallModule = null;
+let selectedTeachConcept = null;
+
+// ==================== CONSTELLATION CANVAS ====================
+(function() {
+  const canvas = document.getElementById('constellation-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let dots = [];
+  let w, h;
+
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+
+  function init() {
+    resize();
+    dots = [];
+    const count = Math.floor((w * h) / 18000);
+    for (let i = 0; i < count; i++) {
+      dots.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.15,
+        vy: (Math.random() - 0.5) * 0.15,
+        r: Math.random() * 1.2 + 0.4,
+        opacity: Math.random() * 0.3 + 0.08,
+      });
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, w, h);
+    for (let i = 0; i < dots.length; i++) {
+      const d = dots[i];
+      d.x += d.vx;
+      d.y += d.vy;
+      if (d.x < 0) d.x = w;
+      if (d.x > w) d.x = 0;
+      if (d.y < 0) d.y = h;
+      if (d.y > h) d.y = 0;
+
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(232,168,76,${d.opacity})`;
+      ctx.fill();
+
+      for (let j = i + 1; j < dots.length; j++) {
+        const d2 = dots[j];
+        const dx = d.x - d2.x;
+        const dy = d.y - d2.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 120) {
+          ctx.beginPath();
+          ctx.moveTo(d.x, d.y);
+          ctx.lineTo(d2.x, d2.y);
+          ctx.strokeStyle = `rgba(232,168,76,${0.04 * (1 - dist / 120)})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', () => { resize(); });
+  init();
+  draw();
+})();
+
+// ==================== API ====================
+async function fetchState() {
+  try {
+    const res = await fetch('/api/state');
+    state = await res.json();
+    return state;
+  } catch(e) {
+    console.error('Failed to fetch state:', e);
+    return null;
+  }
+}
+
+async function appendHistory(line) {
+  await fetch('/api/progress/append-history', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ line })
+  });
+}
+
+async function updateModule(num, updates) {
+  await fetch('/api/progress/update-module', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ num, updates })
+  });
+}
+
+// ==================== WELCOME / TOPIC SUBMIT ====================
+let chosenTopic = '';
+let calibrationQuestions = [];
+
+function pickExample(el) {
+  document.getElementById('topic-input').value = el.textContent;
+  document.getElementById('topic-input').focus();
+}
+
+function goToCalibration() {
+  const input = document.getElementById('topic-input');
+  const topic = input.value.trim();
+  if (!topic) { input.focus(); return; }
+  chosenTopic = topic;
+
+  // Step 1 → Step 2 (waiting for questions)
+  document.getElementById('welcome-step-1').style.display = 'none';
+  document.getElementById('welcome-step-2').style.display = '';
+  document.getElementById('calibration-topic-label').textContent = `Generating calibration questions for ${topic}...`;
+
+  // Tell server we need calibration questions for this topic
+  fetch('/api/topic', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      topic: chosenTopic,
+      stage: 'needs_calibration',
+      pending: true,
+    })
+  }).then(() => {
+    pollForCalibration();
+  });
+}
+
+function pollForCalibration() {
+  fetch('/api/calibration').then(r => r.json()).then(data => {
+    if (data.ready && data.questions?.length) {
+      calibrationQuestions = data.questions;
+      showCalibrationQuestions(data);
+    } else {
+      setTimeout(pollForCalibration, 2000);
+    }
+  }).catch(() => {
+    setTimeout(pollForCalibration, 2000);
+  });
+}
+
+function showCalibrationQuestions(data) {
+  document.getElementById('welcome-step-2').style.display = 'none';
+  document.getElementById('welcome-step-3-cal').style.display = '';
+  document.getElementById('cal-questions-topic').textContent = data.intro || `Answer these to help calibrate your ${chosenTopic} curriculum.`;
+
+  let html = data.questions.map((q, i) => `
+    <div style="margin-bottom:24px;" class="fade-in" style="animation-delay:${i * 0.1}s;">
+      <div style="font-size:14px;font-weight:500;margin-bottom:10px;color:var(--text);">
+        <span style="color:var(--amber);margin-right:6px;">${i + 1}.</span> ${escapeHtml(q.question)}
+      </div>
+      <textarea id="cal-answer-${i}" placeholder="${q.hint || 'Type your answer, or say &quot;I don\'t know&quot;'}"
+        style="width:100%;min-height:${q.type === 'short' ? '50' : '80'}px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font-body);font-size:14px;padding:12px;resize:vertical;line-height:1.5;"></textarea>
+    </div>
+  `).join('');
+
+  document.getElementById('cal-questions-container').innerHTML = html;
+  setTimeout(() => document.getElementById('cal-answer-0')?.focus(), 100);
+}
+
+function submitCalibration() {
+  // Collect answers
+  let answers = calibrationQuestions.map((q, i) => {
+    let el = document.getElementById(`cal-answer-${i}`);
+    return {
+      question: q.question,
+      answer: el?.value?.trim() || "I don't know",
+    };
+  });
+
+  // Check at least one answer has content
+  let hasContent = answers.some(a => a.answer && a.answer !== "I don't know");
+  // That's fine — "I don't know" is valid calibration data
+
+  // Show generating state
+  document.getElementById('welcome-step-3-cal').style.display = 'none';
+  document.getElementById('welcome-step-3').style.display = '';
+
+  // Send answers to server
+  fetch('/api/calibration', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      topic: chosenTopic,
+      answers: answers,
+      timestamp: new Date().toISOString(),
+    })
+  }).then(() => {
+    // Update topic request to signal ready for curriculum generation
+    return fetch('/api/topic', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        topic: chosenTopic,
+        stage: 'ready_for_generation',
+        pending: true,
+      })
+    });
+  }).then(() => {
+    pollForCurriculum();
+  });
+}
+
+let pollCount = 0;
+function pollForCurriculum() {
+  pollCount++;
+
+  // Poll both generation progress and curriculum state
+  Promise.all([
+    fetch('/api/generation-progress').then(r => r.json()).catch(() => ({ steps: [] })),
+    fetch('/api/state').then(r => r.json()).catch(() => ({ has_curriculum: false })),
+  ]).then(([progress, state]) => {
+    // Update progress UI if we have steps
+    if (progress.steps && progress.steps.length > 0) {
+      const listEl = document.getElementById('gen-progress-list');
+      const barEl = document.getElementById('gen-progress-bar');
+      const pctEl = document.getElementById('gen-progress-pct');
+      const statusEl = document.getElementById('generating-status');
+
+      const done = progress.steps.filter(s => s.done).length;
+      const total = progress.steps.length;
+      const pct = Math.round((done / total) * 100);
+
+      if (barEl) { barEl.style.width = pct + '%'; }
+      if (pctEl) { pctEl.textContent = pct + '%'; }
+
+      // Find current active step for header
+      const activeStep = progress.steps.find(s => !s.done);
+      if (statusEl && activeStep) {
+        statusEl.textContent = activeStep.label + '...';
+      } else if (statusEl && done === total) {
+        statusEl.textContent = 'Finishing up...';
+      }
+
+      // Show detail message if available
+      const detailEl = document.getElementById('gen-progress-detail');
+      if (detailEl) {
+        detailEl.textContent = progress.detail || '';
+      }
+
+      // Render checklist with animated step items
+      if (listEl) {
+        const activeIdx = progress.steps.findIndex(s => !s.done);
+        listEl.innerHTML = progress.steps.map((s, i) => {
+          const isActive = i === activeIdx;
+          const cls = s.done ? 'gen-step step-done' : (isActive ? 'gen-step step-active' : 'gen-step');
+          const icon = s.done
+            ? '<div class="gen-step-icon"><div class="check-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></div></div>'
+            : '<div class="gen-step-icon"><div class="pending-dot"></div></div>';
+          return `<div class="${cls}">${icon}<span class="gen-step-label">${s.label}</span></div>`;
+        }).join('');
+      }
+    } else if (pollCount <= 6) {
+      // Fallback rotating messages if no progress file yet
+      const fallback = [
+        'Analyzing your calibration answers...',
+        'Designing module structure and prerequisites...',
+        'Writing lesson content with worked examples...',
+        'Generating practice cards for each module...',
+        'Building knowledge graph...',
+        'Almost there — finalizing your curriculum...',
+      ];
+      const statusEl = document.getElementById('generating-status');
+      if (statusEl) statusEl.textContent = fallback[Math.min(pollCount - 1, fallback.length - 1)];
+    }
+
+    // Check if curriculum is ready
+    if (state.has_curriculum && state.curriculum?.modules?.length > 0) {
+      // Show 100% briefly before transitioning
+      const barEl = document.getElementById('gen-progress-bar');
+      const pctEl = document.getElementById('gen-progress-pct');
+      const statusEl = document.getElementById('generating-status');
+      if (barEl) barEl.style.width = '100%';
+      if (pctEl) pctEl.textContent = '100%';
+      if (statusEl) statusEl.textContent = 'Curriculum ready!';
+      setTimeout(() => {
+        fetch('/api/topic/clear', { method: 'POST' });
+        transitionToApp();
+      }, 800);
+    } else {
+      setTimeout(pollForCurriculum, 2000);
+    }
+  });
+}
+
+document.getElementById('topic-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') goToCalibration();
+});
+
+function transitionToApp() {
+  const welcome = document.getElementById('welcome-screen');
+  welcome.classList.add('leaving');
+  setTimeout(() => {
+    welcome.classList.add('hidden');
+    document.getElementById('app-shell').classList.add('active');
+    refreshAll();
+  }, 500);
+}
+
+function showWelcome() {
+  document.getElementById('welcome-screen').classList.remove('hidden', 'leaving');
+  document.getElementById('app-shell').classList.remove('active');
+}
+
+function showApp() {
+  document.getElementById('welcome-screen').classList.add('hidden');
+  document.getElementById('app-shell').classList.add('active');
+}
+
+// ==================== NAVIGATION ====================
+function nav(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const el = document.getElementById('page-' + page);
+  if (el) el.classList.add('active');
+  const navEl = document.querySelector(`.nav-item[data-page="${page}"]`);
+  if (navEl) navEl.classList.add('active');
+
+  if (page === 'learn') {
+    document.getElementById('learn-select').style.display = '';
+    document.getElementById('learn-session').style.display = 'none';
+    document.getElementById('learn-summary').style.display = 'none';
+  }
+}
+
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => nav(item.dataset.page));
+});
+
+// ==================== DASHBOARD ====================
+function renderDashboard() {
+  const s = state;
+  const p = s?.progress;
+  const prof = s?.profile;
+  const today = s?.today || new Date().toISOString().slice(0,10);
+
+  document.getElementById('dash-date').textContent = today;
+
+  let totalCards = p?.total_cards || 0;
+  let mastered = p?.mastered || 0;
+  let sessions = p?.session_count || 0;
+  let history = p?.history || [];
+  let correct = history.filter(h => h.result === 'correct').length;
+  let total = history.length;
+  let rate = total ? (correct / total * 100) : 0;
+  let due = countDue(p, today);
+
+  let zoneColor = 'var(--text-faint)';
+  let zoneLabel = 'Not enough data yet';
+  if (total >= 3) {
+    if (rate < 60) { zoneColor = 'var(--red)'; zoneLabel = 'Below 60% — add scaffolding'; }
+    else if (rate <= 90) { zoneColor = 'var(--green)'; zoneLabel = '60-90% optimal zone'; }
+    else { zoneColor = 'var(--yellow)'; zoneLabel = 'Above 90% — increase difficulty'; }
+  }
+
+  let masteryPct = totalCards ? (mastered / totalCards * 100) : 0;
+
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat-card">
+      <div class="label">Cards Due</div>
+      <div class="value" style="color:${due > 0 ? 'var(--amber)' : 'var(--text-faint)'}">${due}</div>
+      <div class="sub">ready for review today</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Difficulty Zone</div>
+      <div class="value" style="color:${zoneColor};font-size:28px;">${total >= 3 ? rate.toFixed(0) + '%' : '—'}</div>
+      <div class="sub">${zoneLabel}</div>
+      <div class="zone-meter">
+        <div class="fill" style="width:${Math.min(rate,100)}%;background:${zoneColor};"></div>
+        <div class="tick" style="left:60%;"></div>
+        <div class="tick" style="left:90%;"></div>
+      </div>
+      <div class="zone-labels"><span>0</span><span>60</span><span>90</span><span>100</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Mastery</div>
+      <div class="value" style="color:var(--purple);">${mastered}<span style="font-size:16px;color:var(--text-faint);">/${totalCards}</span></div>
+      <div class="sub">cards at streak 4+</div>
+      <div class="progress-bar"><div class="fill" style="width:${masteryPct}%;"></div></div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Sessions</div>
+      <div class="value">${sessions}</div>
+      <div class="sub">${correct}/${total} answers correct</div>
+    </div>
+  `;
+
+  // Module table
+  let modules = p?.modules || [];
+  if (modules.length) {
+    let rows = modules.map(m => {
+      let cls = statusClass(m.status);
+      return `<tr><td>${m.num}</td><td>${m.name}</td><td>${m.cards}</td><td><span class="badge badge-${cls}">${m.status}</span></td><td style="color:var(--text-faint);">${m.next_review}</td><td>${m.streak}</td></tr>`;
+    }).join('');
+    document.getElementById('dash-module-table').innerHTML = `
+      <table><thead><tr><th>#</th><th>Module</th><th>Cards</th><th>Status</th><th>Next Review</th><th>Streak</th></tr></thead><tbody>${rows}</tbody></table>`;
+  } else {
+    document.getElementById('dash-module-table').innerHTML = '<div class="empty-state"><div class="empty-icon">&#9673;</div><h3>No curriculum yet</h3><p>Ask Claude to generate a curriculum for your topic, then refresh this page.</p></div>';
+  }
+
+  // Errors
+  let errors = prof?.errors || [];
+  if (errors.length) {
+    let rows = errors.map(e => `<tr><td><code>${e.pattern}</code></td><td style="font-weight:600;">${e.count}</td><td style="color:var(--text-faint);">${e.last}</td><td style="color:var(--text-dim);font-size:12px;">${e.example}</td></tr>`).join('');
+    document.getElementById('dash-error-table').innerHTML = `<table><thead><tr><th>Pattern</th><th>Count</th><th>Last</th><th>Example</th></tr></thead><tbody>${rows}</tbody></table>`;
+  } else {
+    document.getElementById('dash-error-table').innerHTML = '<div style="color:var(--text-faint);font-size:13px;padding:8px 0;">No errors tracked yet.</div>';
+  }
+
+  // Strengths
+  let strengths = prof?.strengths || [];
+  if (strengths.length) {
+    document.getElementById('dash-strength-list').innerHTML = '<ul style="list-style:none;">' + strengths.map(s => `<li style="padding:4px 0;font-size:13px;color:var(--text-dim);">${s}</li>`).join('') + '</ul>';
+  } else {
+    document.getElementById('dash-strength-list').innerHTML = '<div style="color:var(--text-faint);font-size:13px;padding:8px 0;">Strengths appear after 3+ consecutive correct answers.</div>';
+  }
+
+  // Due tag on learn page
+  const dueTag = document.getElementById('due-tag');
+  if (dueTag) dueTag.textContent = `${due} card${due !== 1 ? 's' : ''} due`;
+
+  // Dynamic branding from topic
+  updateBranding();
+
+  // Check if generation is still in progress
+  checkDashboardGeneration();
+}
+
+let _dashGenPollTimer = null;
+
+async function checkDashboardGeneration() {
+  try {
+    const res = await fetch('/api/generation-progress');
+    const progress = await res.json();
+    const banner = document.getElementById('dash-gen-banner');
+    if (!banner) return;
+
+    if (!progress.started || !progress.steps || progress.steps.length === 0) {
+      hideDashGenBanner();
+      return;
+    }
+
+    const done = progress.steps.filter(s => s.done).length;
+    const total = progress.steps.length;
+    const allDone = done === total;
+
+    if (allDone) {
+      // All done — hide banner, refresh to pick up new lessons
+      hideDashGenBanner();
+      await fetchLessons();
+      renderStudyList();
+      return;
+    }
+
+    // Show banner with current progress
+    const pct = Math.round((done / total) * 100);
+    const activeStep = progress.steps.find(s => !s.done);
+    const label = activeStep ? activeStep.label + '...' : 'Generating...';
+
+    banner.style.display = '';
+    banner.classList.remove('done');
+    document.getElementById('dash-gen-label').textContent = label;
+    document.getElementById('dash-gen-bar').style.width = pct + '%';
+    document.getElementById('dash-gen-pct').textContent = pct + '%';
+
+    // Schedule next poll
+    clearTimeout(_dashGenPollTimer);
+    _dashGenPollTimer = setTimeout(checkDashboardGeneration, 2000);
+  } catch (e) {
+    // If endpoint fails, just hide
+    hideDashGenBanner();
+  }
+}
+
+function hideDashGenBanner() {
+  clearTimeout(_dashGenPollTimer);
+  const banner = document.getElementById('dash-gen-banner');
+  if (banner && banner.style.display !== 'none') {
+    banner.classList.add('done');
+    setTimeout(() => { banner.style.display = 'none'; }, 400);
+  }
+}
+
+function getTopicName() {
+  // Try to extract topic from PROGRESS.md raw header (# Topic — Progress Tracker)
+  // or fall back to curriculum raw text
+  if (state?.progress?.modules?.length) {
+    // Fetch raw progress to get the topic header
+    return null; // will be set async
+  }
+  return null;
+}
+
+let _cachedTopic = null;
+async function updateBranding() {
+  if (!_cachedTopic) {
+    try {
+      const res = await fetch('/api/progress/raw');
+      const text = await res.text();
+      const match = text.match(/^#\s*(.+?)\s*[—-]\s*Progress/m);
+      if (match) _cachedTopic = match[1].trim();
+    } catch(e) {}
+
+    if (!_cachedTopic) {
+      try {
+        const res = await fetch('/api/curriculum/raw');
+        const text = await res.text();
+        const match = text.match(/^#\s*(.+?)(?:\s*[—-]\s*|$)/m);
+        if (match) _cachedTopic = match[1].trim();
+      } catch(e) {}
+    }
+  }
+
+  const titleEl = document.getElementById('sidebar-title');
+  const topicEl = document.getElementById('sidebar-topic');
+  if (_cachedTopic) {
+    titleEl.textContent = _cachedTopic;
+    document.title = `${_cachedTopic} — SRS`;
+    topicEl.textContent = `${state?.curriculum?.modules?.length || 0} modules`;
+  } else {
+    titleEl.textContent = 'SRS';
+    topicEl.textContent = 'Learning System';
+  }
+}
+
+function countDue(progress, today) {
+  if (!progress?.modules) return 0;
+  let count = 0;
+  for (let mod of progress.modules) {
+    if (mod.next_review && mod.next_review !== '-' && mod.next_review <= today) {
+      count += mod.cards;
+    }
+    if (mod.status === 'active' && (!mod.next_review || mod.next_review === '-')) {
+      count += mod.cards;
+    }
+  }
+  return count;
+}
+
+function statusClass(status) {
+  if (status.includes('skip')) return 'skip';
+  if (status === 'mastered') return 'mastered';
+  if (status === 'active') return 'active';
+  if (status === 'locked') return 'locked';
+  return 'pending';
+}
+
+// ==================== SRS REVIEW SESSION ====================
+function getDueCards() {
+  if (!state?.curriculum?.modules || !state?.progress) return [];
+  let cards = [];
+  let today = state.today;
+
+  for (let mod of state.curriculum.modules) {
+    let progMod = state.progress.modules.find(m => m.num === mod.num);
+    if (!progMod) continue;
+    if (progMod.status === 'locked' || progMod.status.includes('skip') || progMod.status === 'mastered') continue;
+
+    let details = mod.card_details || [];
+    for (let card of details) {
+      cards.push({
+        ...card,
+        moduleName: mod.name,
+        moduleNum: mod.num,
+        moduleStreak: progMod.streak,
+        nextReview: progMod.next_review,
+      });
+    }
+  }
+
+  cards.sort((a, b) => {
+    let aOverdue = a.nextReview && a.nextReview !== '-' && a.nextReview <= today;
+    let bOverdue = b.nextReview && b.nextReview !== '-' && b.nextReview <= today;
+    if (aOverdue && !bOverdue) return -1;
+    if (!aOverdue && bOverdue) return 1;
+    return 0;
+  });
+
+  return cards.slice(0, 10);
+}
+
+function getMixedCards() {
+  if (!state?.curriculum?.modules) return [];
+  let allCards = [];
+  for (let mod of state.curriculum.modules) {
+    let progMod = state.progress?.modules?.find(m => m.num === mod.num);
+    if (!progMod || progMod.status === 'locked' || progMod.status.includes('skip')) continue;
+    let details = mod.card_details || [];
+    for (let card of details) {
+      allCards.push({ ...card, moduleName: mod.name, moduleNum: mod.num });
+    }
+  }
+  for (let i = allCards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allCards[i], allCards[j]] = [allCards[j], allCards[i]];
+  }
+  return allCards.slice(0, 10);
+}
+
+function startReviewSession() {
+  let cards = getDueCards();
+  if (!cards.length) { alert('No cards due for review. Try Mixed Practice instead.'); return; }
+  startSession(cards, 'SRS Review');
+}
+
+function startMixedPractice() {
+  let cards = getMixedCards();
+  if (!cards.length) { alert('No active modules with cards. Generate a curriculum first.'); return; }
+  startSession(cards, 'Mixed Practice');
+}
+
+function startSession(cards, label) {
+  currentSession = { cards, index: 0, results: [], label, startTime: Date.now() };
+  document.getElementById('learn-select').style.display = 'none';
+  document.getElementById('learn-summary').style.display = 'none';
+  document.getElementById('learn-session').style.display = '';
+  document.getElementById('session-label').textContent = label;
+  renderSessionCard();
+}
+
+function renderSessionCard() {
+  let s = currentSession;
+  let card = s.cards[s.index];
+
+  document.getElementById('session-counter').textContent = `${s.index + 1} of ${s.cards.length}`;
+
+  let pips = s.cards.map((_, i) => {
+    let cls = 'session-pip';
+    if (i < s.index) cls += s.results[i]?.correct ? ' done' : ' wrong';
+    if (i === s.index) cls += ' current';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+  document.getElementById('session-pips').innerHTML = pips;
+
+  let typeClass = 'card-type-concept';
+  let typeName = card.type;
+  if (card.type === 'Compute') typeClass = 'card-type-compute';
+  if (card.type === 'Visual') typeClass = 'card-type-visual';
+
+  let question = card.question || card.body || card.title;
+
+  let html = `
+    <div class="fade-in">
+      <div style="font-size:12px;color:var(--text-faint);margin-bottom:8px;">Module ${card.moduleNum}: ${card.moduleName}</div>
+      <div class="card-type-badge ${typeClass}">${typeName}</div>
+      <div class="question-text">${escapeHtml(question)}</div>
+      <div class="answer-area">
+        <textarea id="card-answer" placeholder="Type your answer here...">${''}</textarea>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="reveal-btn" onclick="revealAnswer()">Reveal Answer</button>
+      </div>
+      <div class="reveal-section" id="card-reveal">
+        <h3>Reference</h3>
+        <div class="reference">${escapeHtml(card.validation || card.body || 'Review against the curriculum for the complete answer.')}</div>
+      </div>
+      <div class="grade-buttons" id="card-grade" style="display:none;">
+        <div class="grade-btn grade-got-it" onclick="gradeCard('correct')">
+          <span class="grade-label">Got It</span>
+          <span class="grade-desc">Correct and complete</span>
+        </div>
+        <div class="grade-btn grade-partial" onclick="gradeCard('partial')">
+          <span class="grade-label">Partial</span>
+          <span class="grade-desc">Close but incomplete</span>
+        </div>
+        <div class="grade-btn grade-missed" onclick="gradeCard('incorrect')">
+          <span class="grade-label">Missed</span>
+          <span class="grade-desc">Wrong or major gaps</span>
+        </div>
+      </div>
+      <div class="error-classify" id="card-error-classify">
+        <h4>What type of error?</h4>
+        <div class="error-tags">
+          <div class="error-tag" data-type="verification-skip" onclick="selectErrorType(this)">verification-skip</div>
+          <div class="error-tag" data-type="symbol-drop" onclick="selectErrorType(this)">symbol-drop</div>
+          <div class="error-tag" data-type="concept-gap" onclick="selectErrorType(this)">concept-gap</div>
+          <div class="error-tag" data-type="procedure-error" onclick="selectErrorType(this)">procedure-error</div>
+          <div class="error-tag" data-type="scope-confusion" onclick="selectErrorType(this)">scope-confusion</div>
+          <div class="error-tag" data-type="partial-recall" onclick="selectErrorType(this)">partial-recall</div>
+        </div>
+        <div class="self-explain" style="margin-top:12px;">What one-second check would have caught this?</div>
+        <div class="btn-group">
+          <button class="btn btn-ghost btn-sm" onclick="confirmGrade()">Continue</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('session-card-area').innerHTML = html;
+  setTimeout(() => document.getElementById('card-answer')?.focus(), 100);
+}
+
+function revealAnswer() {
+  document.getElementById('card-reveal').classList.add('visible');
+  document.getElementById('card-grade').style.display = 'flex';
+  document.getElementById('reveal-btn').style.display = 'none';
+}
+
+let pendingGrade = null;
+
+function gradeCard(grade) {
+  let correct = grade === 'correct';
+  pendingGrade = { grade, correct };
+  if (!correct) {
+    document.getElementById('card-error-classify').classList.add('visible');
+    document.getElementById('card-grade').style.display = 'none';
+  } else {
+    confirmGrade();
+  }
+}
+
+function selectErrorType(el) {
+  document.querySelectorAll('.error-tag').forEach(t => t.classList.remove('selected'));
+  el.classList.add('selected');
+  pendingGrade.errorType = el.dataset.type;
+}
+
+async function confirmGrade() {
+  let s = currentSession;
+  let card = s.cards[s.index];
+  let { correct, errorType, grade } = pendingGrade;
+
+  s.results.push({ correct, errorType, grade });
+
+  let today = state.today;
+  let streak = correct ? (card.moduleStreak || 0) + 1 : 0;
+  let resultStr = correct ? 'correct' : 'incorrect';
+  let errorNote = errorType ? ` [${errorType}]` : '';
+  let line = `${today} ${card.id} | ${card.type} | ${resultStr} | ${streak}${errorNote}`;
+  await appendHistory(line);
+
+  s.index++;
+  if (s.index < s.cards.length) {
+    renderSessionCard();
+  } else {
+    showSessionSummary();
+  }
+}
+
+function showSessionSummary() {
+  let s = currentSession;
+  let correct = s.results.filter(r => r.correct).length;
+  let total = s.results.length;
+  let pct = total ? Math.round(correct / total * 100) : 0;
+  let elapsed = Math.round((Date.now() - s.startTime) / 1000);
+  let mins = Math.floor(elapsed / 60);
+  let secs = elapsed % 60;
+
+  let color = pct >= 90 ? 'var(--yellow)' : pct >= 60 ? 'var(--green)' : 'var(--red)';
+  let zoneMsg = pct >= 90 ? 'Above 90% — consider increasing difficulty next time.'
+    : pct >= 60 ? 'In the 60-90% optimal difficulty zone. Keep going.'
+    : 'Below 60% — review fundamentals or add worked examples.';
+
+  document.getElementById('learn-session').style.display = 'none';
+  document.getElementById('learn-summary').style.display = '';
+  document.getElementById('summary-content').innerHTML = `
+    <div style="font-size:10px;text-transform:uppercase;color:var(--text-faint);letter-spacing:1.5px;font-weight:600;">Session Complete</div>
+    <div class="big-number" style="color:${color};">${pct}%</div>
+    <div style="color:var(--text-dim);font-size:14px;margin-bottom:8px;font-style:italic;">${zoneMsg}</div>
+    <div class="summary-stats">
+      <div class="summary-stat"><div class="val" style="color:var(--green);">${correct}</div><div class="lbl">Correct</div></div>
+      <div class="summary-stat"><div class="val" style="color:var(--red);">${total - correct}</div><div class="lbl">Missed</div></div>
+      <div class="summary-stat"><div class="val">${mins}:${secs.toString().padStart(2,'0')}</div><div class="lbl">Duration</div></div>
+    </div>
+    ${s.results.filter(r => r.errorType).length ? `
+      <div class="panel" style="text-align:left;margin-top:16px;">
+        <div class="panel-title">Error Patterns</div>
+        ${s.results.filter(r => r.errorType).map((r, i) => `<div style="font-size:13px;padding:4px 0;"><code>${r.errorType}</code> — Card ${s.cards[i]?.id || '?'}</div>`).join('')}
+      </div>
+    ` : ''}
+    <div class="btn-group" style="justify-content:center;margin-top:24px;">
+      <button class="btn btn-primary" onclick="nav('dashboard');refreshAll();">Back to Dashboard</button>
+      <button class="btn btn-ghost" onclick="nav('learn')">Another Session</button>
+    </div>
+  `;
+}
+
+function endSession() {
+  if (currentSession?.results?.length) {
+    showSessionSummary();
+  } else {
+    nav('learn');
+  }
+}
+
+// ==================== FREE RECALL ====================
+function renderRecallModules() {
+  let modules = state?.curriculum?.modules || [];
+  let html = modules.map(m => `<div class="recall-module-btn" data-num="${m.num}" onclick="selectRecallModule(this, ${m.num})">${m.num}. ${m.name}</div>`).join('');
+  document.getElementById('recall-modules').innerHTML = html || '<div style="color:var(--text-faint);">No modules available.</div>';
+}
+
+function selectRecallModule(el, num) {
+  document.querySelectorAll('.recall-module-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedRecallModule = num;
+}
+
+function startRecall() {
+  if (!selectedRecallModule) { alert('Pick a module first.'); return; }
+  let mod = state.curriculum.modules.find(m => m.num === selectedRecallModule);
+  if (!mod) return;
+
+  document.getElementById('recall-setup').style.display = 'none';
+  document.getElementById('recall-active').style.display = '';
+  document.getElementById('recall-review').style.display = 'none';
+  document.getElementById('recall-module-name').textContent = `Module ${mod.num}: ${mod.name}`;
+  document.getElementById('recall-text').value = '';
+
+  let seconds = parseInt(document.getElementById('recall-timer-select').value);
+  if (seconds > 0) {
+    startRecallTimer(seconds);
+  } else {
+    document.getElementById('recall-timer').textContent = '∞';
+    document.getElementById('recall-timer').classList.add('running');
+  }
+  document.getElementById('recall-text').focus();
+}
+
+function startRecallTimer(seconds) {
+  let remaining = seconds;
+  let timerEl = document.getElementById('recall-timer');
+  timerEl.classList.add('running');
+
+  function tick() {
+    let m = Math.floor(remaining / 60);
+    let s = remaining % 60;
+    timerEl.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+    if (remaining <= 0) {
+      timerEl.textContent = "Time's up!";
+      timerEl.classList.remove('running');
+      timerEl.style.color = 'var(--red)';
+      return;
+    }
+    remaining--;
+    recallTimer = setTimeout(tick, 1000);
+  }
+  tick();
+}
+
+function finishRecall() {
+  if (recallTimer) { clearTimeout(recallTimer); recallTimer = null; }
+  let mod = state.curriculum.modules.find(m => m.num === selectedRecallModule);
+  let userText = document.getElementById('recall-text').value;
+
+  let ref = '';
+  if (mod?.card_details?.length) {
+    ref = mod.card_details.map(c => `<strong>${c.id} [${c.type}] ${c.title}</strong><br>${c.question || c.body || ''}`).join('<br><br>');
+  } else {
+    ref = `<em>Module ${mod.num}: ${mod.name}</em><br>${mod.focus}<br><br>This module has ${mod.cards} cards. Check CURRICULUM.md for full details.`;
+  }
+
+  document.getElementById('recall-active').style.display = 'none';
+  document.getElementById('recall-review').style.display = '';
+  document.getElementById('recall-yours').textContent = userText;
+  document.getElementById('recall-reference').innerHTML = ref;
+}
+
+function resetRecall() {
+  document.getElementById('recall-setup').style.display = '';
+  document.getElementById('recall-active').style.display = 'none';
+  document.getElementById('recall-review').style.display = 'none';
+  document.getElementById('recall-timer').style.color = '';
+  selectedRecallModule = null;
+  document.querySelectorAll('.recall-module-btn').forEach(b => b.classList.remove('selected'));
+}
+
+// ==================== TEACH BACK ====================
+function renderTeachConcepts() {
+  let modules = state?.curriculum?.modules || [];
+  let concepts = [];
+  for (let mod of modules) {
+    let details = mod.card_details || [];
+    for (let card of details) {
+      if (card.type === 'Concept') {
+        concepts.push({ ...card, moduleName: mod.name, moduleNum: mod.num });
+      }
+    }
+  }
+
+  if (concepts.length) {
+    let html = concepts.map(c =>
+      `<div class="recall-module-btn" data-id="${c.id}" onclick="selectTeachConcept(this, '${c.id}')">${c.id}: ${c.title} <span style="color:var(--text-faint);font-size:11px;">(${c.moduleName})</span></div>`
+    ).join('');
+    document.getElementById('teach-concept-list').innerHTML = `<div class="recall-module-select">${html}</div>`;
+  } else if (modules.length) {
+    let html = modules.map(m =>
+      `<div class="recall-module-btn" data-id="mod-${m.num}" onclick="selectTeachConcept(this, 'mod-${m.num}')">${m.num}. ${m.name}</div>`
+    ).join('');
+    document.getElementById('teach-concept-list').innerHTML = `<div class="recall-module-select">${html}</div>`;
+  } else {
+    document.getElementById('teach-concept-list').innerHTML = '<div style="color:var(--text-faint);">No concepts available.</div>';
+  }
+}
+
+function selectTeachConcept(el, id) {
+  document.querySelectorAll('#teach-concept-list .recall-module-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTeachConcept = id;
+}
+
+function startTeach() {
+  if (!selectedTeachConcept) { alert('Pick a concept first.'); return; }
+  let concept = findConcept(selectedTeachConcept);
+  if (!concept) return;
+
+  document.getElementById('teach-setup').style.display = 'none';
+  document.getElementById('teach-active').style.display = '';
+  document.getElementById('teach-review').style.display = 'none';
+  document.getElementById('teach-concept-name').textContent = concept.title;
+  document.getElementById('teach-text').value = '';
+  document.getElementById('teach-text').focus();
+}
+
+function findConcept(id) {
+  if (id.startsWith('mod-')) {
+    let num = parseInt(id.replace('mod-', ''));
+    let mod = state.curriculum.modules.find(m => m.num === num);
+    return mod ? { title: mod.name, body: mod.focus, question: `Explain Module ${num}: ${mod.name}` } : null;
+  }
+  for (let mod of state.curriculum.modules) {
+    let card = (mod.card_details || []).find(c => c.id === id);
+    if (card) return card;
+  }
+  return null;
+}
+
+function finishTeach() {
+  let concept = findConcept(selectedTeachConcept);
+  let userText = document.getElementById('teach-text').value;
+
+  document.getElementById('teach-active').style.display = 'none';
+  document.getElementById('teach-review').style.display = '';
+  document.getElementById('teach-yours').textContent = userText;
+  document.getElementById('teach-reference').innerHTML = escapeHtml(concept?.question || concept?.body || concept?.title || '');
+}
+
+async function gradeTeach(grade) {
+  let today = state.today;
+  let line = `${today} teach-${selectedTeachConcept} | teach-back | ${grade} | 0`;
+  await appendHistory(line);
+
+  document.getElementById('teach-setup').style.display = '';
+  document.getElementById('teach-review').style.display = 'none';
+  selectedTeachConcept = null;
+  document.querySelectorAll('#teach-concept-list .recall-module-btn').forEach(b => b.classList.remove('selected'));
+}
+
+// ==================== CURRICULUM ====================
+function renderCurriculum() {
+  let modules = state?.curriculum?.modules || [];
+  if (!modules.length) {
+    document.getElementById('curriculum-content').innerHTML = '<div class="empty-state"><div class="empty-icon">&#9638;</div><h3>No curriculum yet</h3><p>Ask Claude to generate a curriculum for your topic.</p></div>';
+    return;
+  }
+
+  let progModules = state?.progress?.modules || [];
+
+  let rows = modules.map(m => {
+    let pm = progModules.find(p => p.num === m.num);
+    let status = pm?.status || 'pending';
+    let cls = statusClass(status);
+    let cardCount = m.card_details?.length || m.cards;
+    return `<tr style="cursor:pointer;" onclick="showModuleDetail(${m.num})">
+      <td>${m.num}</td>
+      <td><strong>${m.name}</strong></td>
+      <td>${cardCount}</td>
+      <td>${m.prereqs}</td>
+      <td><span class="badge badge-${cls}">${status}</span></td>
+      <td style="color:var(--text-dim);font-size:12px;">${m.focus}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('curriculum-content').innerHTML = `
+    <div class="panel">
+      <table>
+        <thead><tr><th>#</th><th>Module</th><th>Cards</th><th>Prereqs</th><th>Status</th><th>Focus</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function showModuleDetail(num) {
+  let mod = state.curriculum.modules.find(m => m.num === num);
+  if (!mod) return;
+  let el = document.getElementById('module-detail');
+  el.classList.add('visible');
+
+  let cards = (mod.card_details || []).map(c => {
+    let typeClass = 'card-type-concept';
+    if (c.type === 'Compute') typeClass = 'card-type-compute';
+    if (c.type === 'Visual') typeClass = 'card-type-visual';
+    return `<li><span class="card-id">${c.id}</span><span class="card-type-badge ${typeClass}" style="font-size:10px;padding:2px 8px;">${c.type}</span> ${escapeHtml(c.title)}</li>`;
+  }).join('');
+
+  let probes = (mod.probes || []).map(p => `<li style="color:var(--text-dim);font-size:13px;"><span class="card-id">P${p.num}</span> ${escapeHtml(p.question)}</li>`).join('');
+
+  el.innerHTML = `
+    <h3>Module ${mod.num}: ${mod.name}</h3>
+    <div class="meta">Prereqs: ${mod.prereqs} &middot; ${mod.cards} cards &middot; ${mod.focus}</div>
+    ${probes ? `<div style="margin-bottom:16px;"><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:8px;font-weight:600;">Assessment Probes</div><ul class="card-list">${probes}</ul></div>` : ''}
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);margin-bottom:8px;font-weight:600;">Cards</div>
+    <ul class="card-list">${cards || '<li style="color:var(--text-faint);">No card details parsed.</li>'}</ul>
+  `;
+
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ==================== KNOWLEDGE GRAPH ====================
+function renderGraph() {
+  let modules = state?.curriculum?.modules || [];
+  if (!modules.length) {
+    document.getElementById('graph-container').innerHTML = '<div class="empty-state"><div class="empty-icon">&#9678;</div><h3>No curriculum yet</h3></div>';
+    return;
+  }
+
+  let progModules = state?.progress?.modules || [];
+  let width = 800;
+  let height = 400;
+
+  let maxNum = Math.max(...modules.map(m => m.num));
+  let positions = {};
+
+  modules.forEach((m, i) => {
+    let tier = Math.ceil(m.num / Math.ceil(maxNum / 4));
+    let modsInTier = modules.filter(mm => Math.ceil(mm.num / Math.ceil(maxNum / 4)) === tier);
+    let indexInTier = modsInTier.indexOf(m);
+    let x = 80 + (tier - 1) * ((width - 160) / 3);
+    let ySpacing = height / (modsInTier.length + 1);
+    let y = ySpacing * (indexInTier + 1);
+    positions[m.num] = { x, y };
+  });
+
+  let edges = '';
+  modules.forEach(m => {
+    if (m.prereqs && m.prereqs !== 'none') {
+      let prereqNums = m.prereqs.match(/\d+/g)?.map(Number) || [];
+      prereqNums.forEach(pn => {
+        if (positions[pn] && positions[m.num]) {
+          let from = positions[pn];
+          let to = positions[m.num];
+          edges += `<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="var(--border)" stroke-width="1.5" marker-end="url(#arrow)"/>`;
+        }
+      });
+    }
+  });
+
+  let nodes = modules.map(m => {
+    let pos = positions[m.num];
+    let pm = progModules.find(p => p.num === m.num);
+    let status = pm?.status || 'pending';
+    let color = 'var(--text-faint)';
+    if (status === 'active') color = 'var(--amber)';
+    if (status === 'mastered') color = 'var(--purple)';
+    if (status?.includes('skip')) color = 'var(--green)';
+
+    return `
+      <g style="cursor:pointer;" onclick="showModuleDetail(${m.num});nav('curriculum');">
+        <circle cx="${pos.x}" cy="${pos.y}" r="22" fill="var(--surface2)" stroke="${color}" stroke-width="2"/>
+        <text x="${pos.x}" y="${pos.y + 4}" text-anchor="middle" fill="${color}" font-size="12" font-weight="700" font-family="DM Sans, sans-serif">${m.num}</text>
+        <text x="${pos.x}" y="${pos.y + 40}" text-anchor="middle" fill="var(--text-dim)" font-size="10" font-family="DM Sans, sans-serif">${truncate(m.name, 14)}</text>
+      </g>`;
+  }).join('');
+
+  document.getElementById('graph-container').innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="30" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--border)"/>
+        </marker>
+      </defs>
+      ${edges}
+      ${nodes}
+    </svg>`;
+}
+
+// ==================== HISTORY ====================
+function renderHistory() {
+  let history = state?.progress?.history || [];
+  if (!history.length) {
+    document.getElementById('history-content').innerHTML = '<div class="empty-state"><div class="empty-icon">&#9719;</div><h3>No history yet</h3><p>Complete a session to see your history.</p></div>';
+    return;
+  }
+
+  let rows = history.slice().reverse().map(h => {
+    let cls = h.result === 'correct' ? 'correct' : 'incorrect';
+    return `<tr><td>${h.date}</td><td>${h.card}</td><td>${h.type}</td><td><span class="dot dot-${cls}"></span>${h.result}</td><td>${h.streak}</td></tr>`;
+  }).join('');
+
+  document.getElementById('history-content').innerHTML = `
+    <table>
+      <thead><tr><th>Date</th><th>Card</th><th>Type</th><th>Result</th><th>Streak</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ==================== HELPERS ====================
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function truncate(str, len) {
+  return str.length > len ? str.slice(0, len - 1) + '\u2026' : str;
+}
+
+// ==================== STUDY / LESSONS ====================
+let availableLessons = [];
+let currentStudyModule = null;
+
+async function fetchLessons() {
+  try {
+    const res = await fetch('/api/lessons');
+    const data = await res.json();
+    availableLessons = data.available || [];
+  } catch(e) { availableLessons = []; }
+}
+
+function renderStudyList() {
+  let modules = state?.curriculum?.modules || [];
+  if (!modules.length) {
+    document.getElementById('study-module-list').innerHTML = '<div class="empty-state"><div class="empty-icon">&#9671;</div><h3>No curriculum yet</h3><p>Ask Claude to generate a curriculum, then lessons will appear here.</p></div>';
+    return;
+  }
+
+  let html = modules.map(m => {
+    let hasLesson = availableLessons.includes(m.num);
+    let cls = hasLesson ? 'study-module-card has-lesson' : 'study-module-card no-lesson';
+    let badge = hasLesson
+      ? '<span class="smc-badge" style="background:var(--green-dim);color:var(--green);">Ready</span>'
+      : '<span class="smc-badge" style="background:var(--surface3);color:var(--text-faint);">Coming soon</span>';
+    let onclick = hasLesson ? `onclick="openLesson(${m.num})"` : '';
+    return `<div class="${cls}" ${onclick}>
+      <div class="smc-num">${m.num}</div>
+      <div class="smc-info">
+        <div class="smc-name">${m.name}</div>
+        <div class="smc-focus">${m.focus}</div>
+      </div>
+      ${badge}
+    </div>`;
+  }).join('');
+
+  document.getElementById('study-module-list').innerHTML = html;
+}
+
+async function openLesson(num) {
+  currentStudyModule = num;
+  try {
+    const res = await fetch(`/api/lesson/${num}`);
+    const data = await res.json();
+    if (!data.exists || !data.content) {
+      alert('Lesson not available yet.');
+      return;
+    }
+    document.getElementById('study-module-list').style.display = 'none';
+    document.getElementById('study-lesson').style.display = '';
+    document.getElementById('study-content').innerHTML = '<div class="lesson-content fade-in">' + renderMarkdown(data.content) + '</div>';
+
+    // Prev/next buttons
+    let idx = availableLessons.indexOf(num);
+    document.getElementById('study-prev').style.display = idx > 0 ? '' : 'none';
+    let nextExists = idx < availableLessons.length - 1;
+    document.getElementById('study-next').style.display = nextExists ? '' : 'none';
+
+    // Scroll to top
+    document.querySelector('.main').scrollTop = 0;
+  } catch(e) {
+    console.error('Failed to load lesson:', e);
+  }
+}
+
+function backToStudyList() {
+  document.getElementById('study-module-list').style.display = '';
+  document.getElementById('study-lesson').style.display = 'none';
+  currentStudyModule = null;
+}
+
+function studyPrev() {
+  let idx = availableLessons.indexOf(currentStudyModule);
+  if (idx > 0) openLesson(availableLessons[idx - 1]);
+}
+
+function studyNext() {
+  let idx = availableLessons.indexOf(currentStudyModule);
+  if (idx < availableLessons.length - 1) openLesson(availableLessons[idx + 1]);
+}
+
+// Simple markdown to HTML renderer (handles the subset we use in lessons)
+function renderMarkdown(md) {
+  let html = md;
+
+  // Code blocks (``` ... ```)
+  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
+    return `<pre><code class="lang-${lang}">${escapeHtml(code.trimEnd())}</code></pre>`;
+  });
+
+  // Tables
+  html = html.replace(/^\|(.+)\|\s*\n\|[-| :]+\|\s*\n((?:\|.+\|\s*\n)*)/gm, (match, headerRow, bodyRows) => {
+    let headers = headerRow.split('|').map(h => h.trim()).filter(Boolean);
+    let thRow = headers.map(h => `<th>${renderInline(h)}</th>`).join('');
+    let rows = bodyRows.trim().split('\n').map(row => {
+      let cells = row.split('|').map(c => c.trim()).filter(Boolean);
+      return '<tr>' + cells.map(c => `<td>${renderInline(c)}</td>`).join('') + '</tr>';
+    }).join('\n');
+    return `<table><thead><tr>${thRow}</tr></thead><tbody>${rows}</tbody></table>`;
+  });
+
+  // Blockquotes
+  html = html.replace(/^>\s*(.+(?:\n>.*)*)/gm, (_, content) => {
+    let text = content.replace(/^>\s*/gm, '');
+    return `<blockquote>${renderInline(text)}</blockquote>`;
+  });
+
+  // Headings
+  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+  // Horizontal rules
+  html = html.replace(/^---\s*$/gm, '<hr>');
+
+  // Unordered lists
+  html = html.replace(/^(\s*)-\s+(.+)$/gm, '<li>$2</li>');
+  html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+
+  // Ordered lists
+  html = html.replace(/^(\s*)\d+\.\s+(.+)$/gm, '<li>$2</li>');
+
+  // Paragraphs — wrap loose lines
+  html = html.replace(/^(?!<[huplbotd]|<li|<hr|<pre|<blockquote)(.+)$/gm, '<p>$1</p>');
+
+  // Clean up double paragraphs
+  html = html.replace(/<\/p>\n<p>/g, '</p>\n<p>');
+  html = html.replace(/<p><\/p>/g, '');
+
+  // Inline formatting (do this last to not interfere with block elements)
+  html = renderInlineInHtml(html);
+
+  return html;
+}
+
+function renderInline(text) {
+  // Bold
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Italic
+  text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  // Inline code
+  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+  return text;
+}
+
+function renderInlineInHtml(html) {
+  // Only apply inline formatting inside <p>, <li>, <td>, <th>, <blockquote>, <h*> tags
+  // Avoid touching <pre> and <code> blocks
+  let parts = html.split(/(<pre>[\s\S]*?<\/pre>)/g);
+  return parts.map(part => {
+    if (part.startsWith('<pre>')) return part;
+    part = part.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    part = part.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    // Inline code (but not inside <pre>)
+    part = part.replace(/`([^`]+)`/g, '<code>$1</code>');
+    return part;
+  }).join('');
+}
+
+// ==================== RESET ====================
+document.getElementById('btn-reset').addEventListener('click', () => {
+  const overlay = document.createElement('div');
+  overlay.className = 'reset-overlay';
+  overlay.innerHTML = `
+    <div class="reset-dialog">
+      <h3>Reset everything?</h3>
+      <p>This will delete your curriculum, progress, lessons, and all generated content. You'll start fresh with a new topic.</p>
+      <div class="btn-row">
+        <button class="btn-cancel">Cancel</button>
+        <button class="btn-confirm">Reset</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('.btn-cancel').addEventListener('click', () => overlay.remove());
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  overlay.querySelector('.btn-confirm').addEventListener('click', async () => {
+    overlay.querySelector('.btn-confirm').textContent = 'Resetting...';
+    await fetch('/api/reset', { method: 'POST' });
+    overlay.remove();
+    state = {};
+    showWelcome();
+  });
+});
+
+// ==================== INIT ====================
+async function refreshAll() {
+  await fetchState();
+  if (!state) return;
+
+  // Decide: welcome screen or app
+  if (state.has_curriculum || state.has_progress) {
+    showApp();
+    await fetchLessons();
+    renderDashboard();
+    renderStudyList();
+    renderRecallModules();
+    renderTeachConcepts();
+    renderCurriculum();
+    renderGraph();
+    renderHistory();
+  }
+  // If no curriculum and welcome is already showing, leave it
+}
+
+refreshAll();
+
+// Auto-refresh every 30s
+setInterval(refreshAll, 30000);
+</script>
+</body>
+</html>

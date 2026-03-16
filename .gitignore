@@ -1,3 +1,10 @@
 *.json
 lessons/
 visuals/
+CURRICULUM.md
+PROGRESS.md
+LEARNER_PROFILE.md
+__pycache__/
+*.egg-info/
+dist/
+build/
