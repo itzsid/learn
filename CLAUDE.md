@@ -52,8 +52,8 @@ Scripts use Python with `matplotlib`, `numpy`, `scipy`. All scripts must be self
 
 The entire learning experience runs in the browser via a local Python server:
 
-- `server.py` — HTTP server (port 3000) with API endpoints for reading/writing state files, serving lessons, AND automated curriculum generation via Claude CLI subprocess
-- `index.html` — Single-page app: Luma branded, with lessons, dashboard, multiple practice modes, curriculum browser, knowledge graph
+- `server.py` — HTTP server (port 3000) with API endpoints for reading/writing state files, serving lessons, AI assistant, AND automated curriculum generation via Claude CLI subprocess
+- `index.html` — Single-page app: Luma branded, with lessons, dashboard, multiple practice modes, curriculum browser, knowledge graph, AI assistant
 
 ### Automated Generation (Claude CLI Integration)
 
@@ -70,6 +70,8 @@ Key implementation details in `server.py`:
 - `_update_generation_progress(steps)` — writes `GENERATION_PROGRESS.json` for the UI progress bar
 - Progress bar format: `{"started": true, "steps": [{"label": "...", "done": true/false}]}` — the frontend expects `label` and `done` fields (NOT `name`/`status`)
 - Thread lock `_generation_lock` prevents duplicate generation runs
+- `POST /api/ask` — AI assistant endpoint. Accepts `{question, lessonContent, moduleTitle, history}`, calls `_run_claude()` with no tools (pure text), returns `{ok, answer}`. Uses ThreadPoolExecutor with 120s timeout.
+- `POST /api/coding/feedback` — Coding feedback endpoint, same pattern as `/api/ask`
 
 ### /start Protocol
 
@@ -164,6 +166,7 @@ The correct flow, informed by LEARNING_THEORY.md:
 - **Coding Practice** (technical topics) — Write working code to solve scoped problems; graded on correctness, edge cases, complexity, and clarity
 - **Knowledge Graph** — Visual module dependency map showing mastery flow
 - **Difficulty Zone** — 60-90% success rate meter (desirable difficulties, Bjork & Bjork)
+- **AI Assistant** — Side panel in lesson view for asking questions about the current lesson. Uses `POST /api/ask` which calls Claude CLI with the lesson content as context. Collapsible sidebar (460px) sits to the right of lesson content; stacks below on narrow screens (<1100px). Conversation history persists within a lesson and resets on lesson switch.
 
 ### Learning Theory Reference
 

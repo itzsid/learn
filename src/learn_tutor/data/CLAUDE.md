@@ -52,8 +52,8 @@ Scripts use Python with `matplotlib`, `numpy`, `scipy`. All scripts must be self
 
 The entire learning experience runs in the browser via a local Python server:
 
-- `server.py` — HTTP server (port 3000) with API endpoints for reading/writing state files, serving lessons, AND automated curriculum generation via Claude CLI subprocess
-- `index.html` — Single-page app: Luma branded, with lessons, dashboard, multiple practice modes, curriculum browser, knowledge graph
+- `server.py` — HTTP server (port 3000) with API endpoints for reading/writing state files, serving lessons, AI assistant, AND automated curriculum generation via Claude CLI subprocess
+- `index.html` — Single-page app: Luma branded, with lessons, dashboard, multiple practice modes, curriculum browser, knowledge graph, AI assistant
 
 ### Automated Generation (Claude CLI Integration)
 
@@ -70,6 +70,8 @@ Key implementation details in `server.py`:
 - `_update_generation_progress(steps)` — writes `GENERATION_PROGRESS.json` for the UI progress bar
 - Progress bar format: `{"started": true, "steps": [{"label": "...", "done": true/false}]}` — the frontend expects `label` and `done` fields (NOT `name`/`status`)
 - Thread lock `_generation_lock` prevents duplicate generation runs
+- `POST /api/ask` — AI assistant endpoint. Accepts `{question, lessonContent, moduleTitle, history}`, calls `_run_claude()` with no tools (pure text), returns `{ok, answer}`. Uses ThreadPoolExecutor with 120s timeout.
+- `POST /api/coding/feedback` — Coding feedback endpoint, same pattern as `/api/ask`
 
 ### /start Protocol
 
@@ -151,7 +153,7 @@ After cleanup, tell the user the slate is clean and they can pick a new topic.
 The correct flow, informed by LEARNING_THEORY.md:
 
 1. **Study** — Read the lesson for a module (Study > Lessons in the sidebar)
-2. **Practice** — Test understanding via SRS Review, Free Recall, Teach Back, or Mixed Practice
+2. **Practice** — Test understanding via SRS Review, Free Recall, Teach Back, Mixed Practice, or Coding Practice (technical topics)
 3. **Review** — Spaced repetition brings cards back at increasing intervals
 4. **Reflect** — Error classification and self-explanation after mistakes
 
@@ -161,8 +163,10 @@ The correct flow, informed by LEARNING_THEORY.md:
 - **Free Recall** — Pick a module, write everything you know from memory, compare against reference (highest-effectiveness retrieval format per Bjork)
 - **Teach Back** — Explain a concept as if teaching someone, then compare (self-explanation effect, Chi et al.)
 - **Mixed Practice** — Interleaved problems across modules (improves discrimination, Dunlosky et al.)
+- **Coding Practice** (technical topics) — Write working code to solve scoped problems; graded on correctness, edge cases, complexity, and clarity
 - **Knowledge Graph** — Visual module dependency map showing mastery flow
 - **Difficulty Zone** — 60-90% success rate meter (desirable difficulties, Bjork & Bjork)
+- **AI Assistant** — Side panel in lesson view for asking questions about the current lesson. Uses `POST /api/ask` which calls Claude CLI with the lesson content as context. Collapsible sidebar (460px) sits to the right of lesson content; stacks below on narrow screens (<1100px). Conversation history persists within a lesson and resets on lesson switch.
 
 ### Learning Theory Reference
 
@@ -238,7 +242,7 @@ Organize knowledge into 8-20 modules, grouped into tiers:
 
 Each module has:
 - A prerequisite list (which modules must come first)
-- 6-10 cards across three types
+- 6-10 cards across three types (four for technical topics — adds Coding cards)
 - 2-3 assessment probes (for Tier 1-2 modules)
 
 ### Card Types
@@ -256,6 +260,11 @@ Every module contains all three types:
 **Visual cards** — You generate a script, the user runs it, then answers observation questions.
 - Test pattern recognition and spatial reasoning.
 - Example: "I've generated a visualization of three sorting algorithms. Run it. Which algorithm does the fewest swaps on nearly-sorted input? Why?"
+
+**Coding cards** (technical topics only) — Write working code to solve a problem.
+- Test the ability to translate concepts into running code. Applied understanding, not just theory.
+- Problems should be scoped to 5-30 lines of code. Specify the language, input/output, and constraints.
+- Example: "Write a function that detects a cycle in a linked list. What is the time and space complexity of your solution?"
 
 ### Card Format in CURRICULUM.md
 
@@ -278,6 +287,13 @@ Status: locked | Prereqs: Module 1, Module 2
 **3.3 [Visual]** [Title]
 - Q: [The observation question to ask after the user runs the script]
 - Script guidance: [What the visualization should show]
+
+**3.4 [Coding]** [Title] *(technical topics only)*
+- Q: [The problem to solve with code]
+- Language: [Target language]
+- Constraints: [Time/space complexity, banned stdlib functions, etc.]
+- Validation: [What a correct solution must handle — edge cases, expected output]
+- Solution: [Reference solution code that solves the problem correctly]
 ```
 
 ### Module Map Table
@@ -375,6 +391,14 @@ For each card:
 - Ask the observation question
 - Grade their observation
 
+**Coding cards:**
+- Present the problem, language, and constraints
+- Wait for the user's code
+- Grade for: correctness, edge case handling, complexity match, code clarity
+- If the code is correct but inefficient (doesn't meet complexity constraints), mark incorrect and explain the expected approach
+- If the code has a subtle bug (e.g., off-by-one, missing null check), point it out specifically — don't just say "wrong"
+- Run the code mentally or actually against test cases; present failing inputs if found
+
 ### 4. Update Progress
 
 After each card:
@@ -452,6 +476,44 @@ After presenting the image:
 
 ---
 
+## Coding Exercise Protocol
+
+For technical topics, Coding cards test applied programming skill. They bridge the gap between understanding a concept and implementing it.
+
+### Card Design
+
+- **Scoped problems**: 5-30 lines of solution code. Not full projects, not one-liners.
+- **Clear spec**: State the function signature (or equivalent), input format, expected output, and constraints.
+- **Edge cases matter**: The validation field in CURRICULUM.md lists edge cases the solution must handle (empty input, single element, duplicates, negative numbers, etc.).
+- **Complexity targets**: When relevant, specify expected time/space complexity. A brute-force O(n²) solution when O(n) is expected = incorrect.
+
+### Grading Coding Cards
+
+Grade on four axes:
+
+1. **Correctness** — Does it produce the right output for all inputs, including edge cases?
+2. **Complexity** — Does it meet the stated time/space constraints?
+3. **Clarity** — Is the code readable? Reasonable variable names, no unnecessary convolution. (Don't penalize style preferences — penalize genuine obscurity.)
+4. **Completeness** — Does it handle all the constraints and edge cases listed in the card?
+
+A solution that passes all test cases but uses the wrong complexity = incorrect.
+A solution with the right approach but a subtle bug = incorrect, but acknowledge the approach is sound and pinpoint the bug.
+
+### Error Types for Coding Cards
+
+In addition to the standard error classification, coding cards may produce:
+
+| Error Type | Description | Example |
+|------------|-------------|---------|
+| `off-by-one` | Loop bounds, index, or range off by one | `for i in range(len(arr))` when it should be `range(len(arr) - 1)` |
+| `edge-case-miss` | Logic correct for typical input, fails on boundary | Doesn't handle empty list, single element, or negative values |
+| `complexity-miss` | Correct output but wrong algorithmic complexity | Used nested loop O(n²) when a hash map gives O(n) |
+| `api-misuse` | Wrong usage of language/library functions | Mutating a list while iterating over it |
+
+These map to the standard error types for root cause analysis (`off-by-one` → `procedure-error`, `edge-case-miss` → `partial-recall`, etc.) but the specific coding label is noted in Card History for pattern detection.
+
+---
+
 ## Grading Standards
 
 ### Be Strict
@@ -461,6 +523,7 @@ Do not accept "close enough." Rigor in execution is the skill being trained.
 - **Concept cards:** The explanation must be correct AND complete. Missing a key condition or edge case = incorrect. Vague hand-waving = incorrect. Ask for clarification before marking wrong if the answer is ambiguous.
 - **Compute cards:** Every intermediate step must be shown and correct. A correct final answer with a wrong intermediate step is incorrect. Dropped variables, sign errors, and skipped simplifications all count.
 - **Visual cards:** The observation must match what the visualization actually shows. Accept informal language but not wrong conclusions.
+- **Coding cards:** The code must be correct, handle edge cases, and meet complexity constraints. A correct answer with the wrong complexity is incorrect. A clean approach with a subtle bug gets credit for the approach but is still marked incorrect — pinpoint the bug.
 
 ### Be Constructive
 
