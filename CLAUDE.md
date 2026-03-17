@@ -34,6 +34,8 @@ Each lesson is a standalone markdown file at `lessons/module_N.md`. A good lesso
 5. **Comparison tables** — When distinguishing similar concepts
 6. **Common pitfalls** — What beginners get wrong and why
 7. **Key takeaways** — Concise summary at the end
+8. **Recommended YouTube videos** — 1-3 relevant videos from well-known educational channels. Include video title, channel name, and YouTube URL. Only recommend videos you are confident exist. Prefer established channels with high production quality.
+9. **Further reading** — 1-2 relevant papers, tutorials, or blog posts. Include title, author/source, and URL. Prefer primary sources (original papers), well-known tutorials (e.g., Distill, Lil'Log), and official documentation. Only recommend resources you are confident exist.
 
 Lesson style guidelines:
 - Write as a tutor, not a textbook. Conversational but precise.

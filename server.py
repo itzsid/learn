@@ -355,6 +355,7 @@ The lesson should be readable in 5-10 minutes and include:
 3. Worked examples — step-by-step walkthroughs
 4. Common pitfalls — what beginners get wrong and why
 5. Key takeaways — concise summary
+6. Recommended YouTube videos — 1-3 relevant, well-known videos with title, channel, and YouTube URL. Only include videos you are confident exist and are highly relevant to the module topic. Prefer established educational channels (3Blue1Brown, Fireship, Ben Eater, Computerphile, etc. depending on topic).
 
 Write as a tutor, not a textbook. Use concrete examples before abstract rules.
 End with: "Head to SRS Review or Teach Back to solidify this."
@@ -741,6 +742,50 @@ If the code is correct and clean, say so briefly — don't invent issues. Be spe
                     self._json_response({"ok": True, "feedback": result or "No feedback generated."})
                 except concurrent.futures.TimeoutError:
                     self._json_response({"ok": False, "feedback": "Feedback timed out."})
+        elif path == "/api/ask":
+            data = json.loads(body)
+            question = data.get("question", "").strip()
+            lesson_content = data.get("lessonContent", "")
+            module_title = data.get("moduleTitle", "")
+            history = data.get("history", [])
+
+            if not question:
+                self._json_response({"ok": False, "answer": "No question provided."})
+                return
+
+            # Build conversation context from history
+            history_text = ""
+            if history:
+                history_text = "\n\nPrevious conversation:\n"
+                for msg in history[-6:]:  # Keep last 6 messages for context
+                    role = "Student" if msg.get("role") == "user" else "Tutor"
+                    history_text += f"{role}: {msg.get('content', '')}\n"
+
+            prompt = f"""You are a tutor helping a student who is reading a lesson on {module_title}. Answer their question concisely, referencing the lesson content where relevant. Use markdown formatting. Use LaTeX notation ($...$ for inline, $$...$$ for display) for any math.
+
+Here is the lesson content:
+---
+{lesson_content[:8000]}
+---
+{history_text}
+Student's question: {question}
+
+Answer concisely and helpfully:"""
+
+            def get_answer():
+                result = _run_claude(prompt, allowed_tools="")
+                if result and hasattr(result, 'stdout'):
+                    return result.stdout.strip()
+                return None
+
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(get_answer)
+                try:
+                    result = future.result(timeout=120)
+                    self._json_response({"ok": True, "answer": result or "No answer generated."})
+                except concurrent.futures.TimeoutError:
+                    self._json_response({"ok": False, "answer": "Request timed out. Please try again."})
+
         elif path == "/api/reset":
             # Cancel any ongoing generation and kill subprocesses
             _cancel_generation.set()
